@@ -27,8 +27,9 @@ import (
 type PlatformSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	CF  CFAuth
-	K8s K8sAuth
+	Name string
+	CF   CFAuth
+	K8s  K8sAuth
 }
 
 type CFAuth struct {
@@ -38,7 +39,6 @@ type CFAuth struct {
 }
 
 type K8sAuth struct {
-	URL      string
 	Kubeconf string
 }
 
