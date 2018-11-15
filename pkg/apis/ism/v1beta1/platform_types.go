@@ -39,7 +39,7 @@ type CFAuth struct {
 }
 
 type K8sAuth struct {
-	Kubeconf string
+	Kubeconfig string
 }
 
 // PlatformStatus defines the observed state of Platform
