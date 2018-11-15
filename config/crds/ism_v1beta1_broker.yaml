@@ -21,6 +21,15 @@ spec:
         metadata:
           type: object
         spec:
+          properties:
+            name:
+              type: string
+            password:
+              type: string
+            url:
+              type: string
+            username:
+              type: string
           type: object
         status:
           type: object
