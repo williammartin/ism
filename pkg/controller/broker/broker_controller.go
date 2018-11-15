@@ -23,8 +23,10 @@ import (
 	ismv1beta1 "github.com/pivotal-cf/ism/pkg/apis/ism/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -64,6 +66,18 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	err = c.Watch(&source.Kind{Type: &ismv1beta1.BrokeredService{}}, &handler.EnqueueRequestForOwner{
+		IsController: false,
+		OwnerType:    &ismv1beta1.Broker{},
+	})
+	if err != nil {
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -83,8 +97,8 @@ type ReconcileBroker struct {
 // +kubebuilder:rbac:groups=ism.ism.pivotal.io,resources=brokers,verbs=get;list;watch;create;update;patch;delete
 func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// Fetch the Broker instance
-	instance := &ismv1beta1.Broker{}
-	err := r.Get(context.TODO(), request.NamespacedName, instance)
+	broker := &ismv1beta1.Broker{}
+	err := r.Get(context.TODO(), request.NamespacedName, broker)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -95,11 +109,65 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
-	fmt.Printf("RECONCILE: %#v\n", instance)
+	fmt.Printf("RECONCILE: %#v\n", broker)
 
-	cat, err := getBrokerCatalog(instance)
+	cat, err := getBrokerCatalog(broker)
 	if err != nil {
 		return reconcile.Result{}, err
+	}
+
+	for _, service := range cat.Services {
+		brokeredService := &ismv1beta1.BrokeredService{}
+		err := r.Get(context.TODO(), types.NamespacedName{Namespace: broker.Namespace, Name: service.Name}, brokeredService)
+
+		if errors.IsNotFound(err) {
+			brokeredServiceSpec := ismv1beta1.BrokeredServiceSpec{
+				Name:        service.Name,
+				ID:          service.ID,
+				Bindable:    service.Bindable,
+				Description: service.Description,
+			}
+			brokeredService = &ismv1beta1.BrokeredService{Spec: brokeredServiceSpec}
+			brokeredService.Name = service.Name
+			brokeredService.Namespace = request.Namespace
+
+			if err := controllerutil.SetControllerReference(broker, brokeredService, r.scheme); err != nil {
+				return reconcile.Result{}, err
+			}
+
+			if err := r.Create(context.TODO(), brokeredService); err != nil {
+				return reconcile.Result{}, err
+			}
+		} else {
+			fmt.Printf("service %s already exists", service.Name)
+		}
+
+		for _, plan := range service.Plans {
+			brokeredPlan := &ismv1beta1.BrokeredServicePlan{}
+			err := r.Get(context.TODO(), types.NamespacedName{Namespace: broker.Namespace, Name: plan.Name}, brokeredPlan)
+			if !errors.IsNotFound(err) {
+				fmt.Printf("plan %s already exists", plan.Name)
+				break
+			}
+
+			brokeredPlansSpec := ismv1beta1.BrokeredServicePlanSpec{
+				Name:        plan.Name,
+				ID:          plan.ID,
+				Description: plan.Description,
+			}
+			brokeredPlan = &ismv1beta1.BrokeredServicePlan{Spec: brokeredPlansSpec}
+			brokeredPlan.Name = plan.Name
+			brokeredPlan.Namespace = request.Namespace
+
+			if err := controllerutil.SetControllerReference(brokeredService, brokeredPlan, r.scheme); err != nil {
+				return reconcile.Result{}, err
+			}
+
+			if err := r.Create(context.TODO(), brokeredPlan); err != nil {
+				return reconcile.Result{}, err
+			}
+		}
+
 	}
 
 	fmt.Printf("CATALOG: %#v\n", cat)
