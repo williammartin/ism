@@ -130,6 +130,9 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			brokeredService = &ismv1beta1.BrokeredService{Spec: brokeredServiceSpec}
 			brokeredService.Name = service.Name
 			brokeredService.Namespace = request.Namespace
+			brokeredService.Labels = map[string]string{
+				"ServiceName": service.Name,
+			}
 
 			if err := controllerutil.SetControllerReference(broker, brokeredService, r.scheme); err != nil {
 				return reconcile.Result{}, err
@@ -158,6 +161,9 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 			brokeredPlan = &ismv1beta1.BrokeredServicePlan{Spec: brokeredPlansSpec}
 			brokeredPlan.Name = plan.Name
 			brokeredPlan.Namespace = request.Namespace
+			brokeredPlan.Labels = map[string]string{
+				"PlanName": brokeredPlan.Name,
+			}
 
 			if err := controllerutil.SetControllerReference(brokeredService, brokeredPlan, r.scheme); err != nil {
 				return reconcile.Result{}, err
