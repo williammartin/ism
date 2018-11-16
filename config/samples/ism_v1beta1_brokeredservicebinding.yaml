@@ -1,0 +1,10 @@
+apiVersion: ism.ism.pivotal.io/v1beta1
+kind: BrokeredServiceBinding
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: brokeredservicebinding-sample
+spec:
+	serviceInstanceID:
+	platformID:
+	platformAttachmentContext:

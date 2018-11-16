@@ -27,19 +27,19 @@ import (
 type PlatformSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Name string
-	CF   CFAuth
-	K8s  K8sAuth
+	Name string  `json:"name,omitempty"`
+	CF   CFAuth  `json:"cf,omitempty"`
+	K8s  K8sAuth `json:"k8s,omitempty"`
 }
 
 type CFAuth struct {
-	URL      string
-	Username string
-	Password string
+	URL      string `json:"url,omitempty"`
+	Username string `json:"username,omitempty"`
+	Password string `json:"password,omitempty"`
 }
 
 type K8sAuth struct {
-	Kubeconfig string
+	Kubeconfig string `json:"kubeconfig,omitempty"`
 }
 
 // PlatformStatus defines the observed state of Platform

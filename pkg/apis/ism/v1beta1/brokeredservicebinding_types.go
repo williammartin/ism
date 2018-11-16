@@ -23,47 +23,45 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// BrokeredServiceInstanceSpec defines the desired state of BrokeredServiceInstance
-type BrokeredServiceInstanceSpec struct {
+// BrokeredServiceBindingSpec defines the desired state of BrokeredServiceBinding
+type BrokeredServiceBindingSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Service string `json:"service,omitempty"`
-	Plan    string `json:"plan,omitempty"`
-	Name    string `json:"name,omitempty"`
-	ID      string `json:"id,omitempty"`
+	ServiceInstanceName       string `json:"serviceInstanceName,omitempty"`
+	PlatformName              string `json:"platformName,omitempty"`
+	PlatformAttachmentContext string `json:"platformAttachmentContext,omitempty"`
 }
 
-// BrokeredServiceInstanceStatus defines the observed state of BrokeredServiceInstance
-type BrokeredServiceInstanceStatus struct {
+// BrokeredServiceBindingStatus defines the observed state of BrokeredServiceBinding
+type BrokeredServiceBindingStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Success bool `json:"success,omitempty"`
-	Async   bool `json:"async"`
 }
 
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// BrokeredServiceInstance is the Schema for the brokeredserviceinstances API
+// BrokeredServiceBinding is the Schema for the brokeredservicebindings API
 // +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
-type BrokeredServiceInstance struct {
+type BrokeredServiceBinding struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   BrokeredServiceInstanceSpec   `json:"spec,omitempty"`
-	Status BrokeredServiceInstanceStatus `json:"status,omitempty"`
+	Spec   BrokeredServiceBindingSpec   `json:"spec,omitempty"`
+	Status BrokeredServiceBindingStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// BrokeredServiceInstanceList contains a list of BrokeredServiceInstance
-type BrokeredServiceInstanceList struct {
+// BrokeredServiceBindingList contains a list of BrokeredServiceBinding
+type BrokeredServiceBindingList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []BrokeredServiceInstance `json:"items"`
+	Items           []BrokeredServiceBinding `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&BrokeredServiceInstance{}, &BrokeredServiceInstanceList{})
+	SchemeBuilder.Register(&BrokeredServiceBinding{}, &BrokeredServiceBindingList{})
 }

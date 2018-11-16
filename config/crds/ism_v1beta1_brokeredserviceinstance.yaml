@@ -11,6 +11,8 @@ spec:
     kind: BrokeredServiceInstance
     plural: brokeredserviceinstances
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       properties:
@@ -22,6 +24,8 @@ spec:
           type: object
         spec:
           properties:
+            id:
+              type: string
             name:
               type: string
             plan:
@@ -31,11 +35,12 @@ spec:
           type: object
         status:
           properties:
-            response:
-              properties:
-                async:
-                  type: boolean
-              type: object
+            async:
+              type: boolean
+            success:
+              type: boolean
+          required:
+          - async
           type: object
   version: v1beta1
 status:

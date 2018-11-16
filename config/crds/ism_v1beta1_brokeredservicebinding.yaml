@@ -4,13 +4,15 @@ metadata:
   creationTimestamp: null
   labels:
     controller-tools.k8s.io: "1.0"
-  name: platforms.ism.ism.pivotal.io
+  name: brokeredservicebindings.ism.ism.pivotal.io
 spec:
   group: ism.ism.pivotal.io
   names:
-    kind: Platform
-    plural: platforms
+    kind: BrokeredServiceBinding
+    plural: brokeredservicebindings
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       properties:
@@ -22,19 +24,17 @@ spec:
           type: object
         spec:
           properties:
-            cf:
-              properties:
-                password:
-                  type: string
-                url:
-                  type: string
-                username:
-                  type: string
-              type: object
-            name:
+            platformAttachmentContext:
+              type: string
+            platformName:
+              type: string
+            serviceInstanceName:
               type: string
           type: object
         status:
+          properties:
+            success:
+              type: boolean
           type: object
   version: v1beta1
 status:

@@ -31,6 +31,30 @@ rules:
 - apiGroups:
   - ism.ism.pivotal.io
   resources:
+  - brokeredservicebindings
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ism.ism.pivotal.io
+  resources:
   - brokeredserviceinstances
   verbs:
   - get
