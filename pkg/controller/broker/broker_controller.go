@@ -109,6 +109,8 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
+	// err := r.List(context.TODO(),
+
 	fmt.Printf("RECONCILE: %#v\n", broker)
 
 	cat, err := getBrokerCatalog(broker)
@@ -118,7 +120,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 
 	for _, service := range cat.Services {
 		brokeredService := &ismv1beta1.BrokeredService{}
-		err := r.Get(context.TODO(), types.NamespacedName{Namespace: broker.Namespace, Name: service.Name}, brokeredService)
+		err := r.Get(context.TODO(), types.NamespacedName{Namespace: broker.Namespace, Name: service.ID}, brokeredService)
 
 		if errors.IsNotFound(err) {
 			brokeredServiceSpec := ismv1beta1.BrokeredServiceSpec{
@@ -128,7 +130,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 				Description: service.Description,
 			}
 			brokeredService = &ismv1beta1.BrokeredService{Spec: brokeredServiceSpec}
-			brokeredService.Name = service.Name
+			brokeredService.Name = service.ID
 			brokeredService.Namespace = request.Namespace
 			brokeredService.Labels = map[string]string{
 				"ServiceName": service.Name,
@@ -147,7 +149,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 
 		for _, plan := range service.Plans {
 			brokeredPlan := &ismv1beta1.BrokeredServicePlan{}
-			err := r.Get(context.TODO(), types.NamespacedName{Namespace: broker.Namespace, Name: plan.Name}, brokeredPlan)
+			err := r.Get(context.TODO(), types.NamespacedName{Namespace: broker.Namespace, Name: plan.ID}, brokeredPlan)
 			if !errors.IsNotFound(err) {
 				fmt.Printf("plan %s already exists", plan.Name)
 				break
@@ -159,7 +161,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 				Description: plan.Description,
 			}
 			brokeredPlan = &ismv1beta1.BrokeredServicePlan{Spec: brokeredPlansSpec}
-			brokeredPlan.Name = plan.Name
+			brokeredPlan.Name = plan.ID
 			brokeredPlan.Namespace = request.Namespace
 			brokeredPlan.Labels = map[string]string{
 				"PlanName": brokeredPlan.Name,
@@ -209,6 +211,7 @@ func getBrokerCatalog(instance *ismv1beta1.Broker) (*osb.CatalogResponse, error)
 	}
 
 	cat, err := client.GetCatalog()
+	fmt.Printf("CAT: %+v\n", cat)
 	if err != nil {
 		return nil, err
 	}

@@ -107,25 +107,9 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 		return reconcile.Result{}, err
 	}
 
-	//plan
-	plan := &ismv1beta1.BrokeredServicePlan{}
-	err = r.Get(context.TODO(), types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.Plan}, plan)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Object not found, return.  Created objects are automatically garbage collected.
-			// For additional cleanup logic use finalizers.
-
-			//TODO: Set status to failed
-			fmt.Println("plan not found")
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
-	}
-
 	//service
 	service := &ismv1beta1.BrokeredService{}
-	err = r.Get(context.TODO(), types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.Service}, service)
+	err = r.Get(context.TODO(), types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.ServiceID}, service)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -161,7 +145,7 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 		instance.Spec.ID = uuid.Must(uuid.NewV4()).String()
 	}
 
-	provisionResp, err := provision(broker.Spec.URL, broker.Spec.Username, broker.Spec.Password, plan.Spec.ID, service.Spec.ID, instance.Spec.ID)
+	provisionResp, err := provision(broker.Spec.URL, broker.Spec.Username, broker.Spec.Password, instance.Spec.PlanID, service.Spec.ID, instance.Spec.ID)
 	if err != nil {
 		return reconcile.Result{}, err
 	}

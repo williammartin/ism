@@ -28,9 +28,9 @@ spec:
               type: string
             name:
               type: string
-            plan:
+            planId:
               type: string
-            service:
+            serviceId:
               type: string
           type: object
         status:

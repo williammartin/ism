@@ -27,10 +27,10 @@ import (
 type BrokeredServiceInstanceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Service string `json:"service,omitempty"`
-	Plan    string `json:"plan,omitempty"`
-	Name    string `json:"name,omitempty"`
-	ID      string `json:"id,omitempty"`
+	ServiceID string `json:"serviceId,omitempty"`
+	PlanID    string `json:"planId,omitempty"`
+	Name      string `json:"name,omitempty"`
+	ID        string `json:"id,omitempty"`
 }
 
 // BrokeredServiceInstanceStatus defines the observed state of BrokeredServiceInstance
