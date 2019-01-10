@@ -30,7 +30,7 @@ type BrokeredServiceInstanceSpec struct {
 	ServiceID string `json:"serviceId,omitempty"`
 	PlanID    string `json:"planId,omitempty"`
 	Name      string `json:"name,omitempty"`
-	ID        string `json:"id,omitempty"`
+	GUID      string `json:"guid,omitempty"`
 }
 
 // BrokeredServiceInstanceStatus defines the observed state of BrokeredServiceInstance

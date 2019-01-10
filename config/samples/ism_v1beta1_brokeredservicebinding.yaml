@@ -5,6 +5,5 @@ metadata:
     controller-tools.k8s.io: "1.0"
   name: brokeredservicebinding-sample
 spec:
-	serviceInstanceID:
-	platformID:
-	platformAttachmentContext:
+  serviceInstanceGuid: a90f9e2a-ef60-4de3-bceb-cd83c0bf7fc5
+  platformName: cf1

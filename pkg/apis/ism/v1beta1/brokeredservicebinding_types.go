@@ -27,16 +27,16 @@ import (
 type BrokeredServiceBindingSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	ServiceInstanceName       string `json:"serviceInstanceName,omitempty"`
-	PlatformName              string `json:"platformName,omitempty"`
-	PlatformAttachmentContext string `json:"platformAttachmentContext,omitempty"`
+	ServiceInstanceGUID string `json:"serviceInstanceGuid,omitempty"`
+	PlatformName        string `json:"platformName,omitempty"`
 }
 
 // BrokeredServiceBindingStatus defines the observed state of BrokeredServiceBinding
 type BrokeredServiceBindingStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Success bool `json:"success,omitempty"`
+	Success     bool   `json:"success,omitempty"`
+	Credentials string `json:"credentials,omitempty"`
 }
 
 // +genclient

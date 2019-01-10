@@ -110,7 +110,7 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 	}
 
 	instance := &ismv1beta1.BrokeredServiceInstance{}
-	err = r.Get(context.TODO(), types.NamespacedName{Namespace: binding.Namespace, Name: binding.Spec.ServiceInstanceName}, instance)
+	err = r.Get(context.TODO(), types.NamespacedName{Namespace: binding.Namespace, Name: binding.Spec.ServiceInstanceGUID}, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Object not found, return.  Created objects are automatically garbage collected.
@@ -118,23 +118,6 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 
 			//TODO: Set status to failed
 			fmt.Println("instance not found")
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
-	}
-
-	//platform
-	platform := &ismv1beta1.Platform{}
-
-	err = r.Get(context.TODO(), types.NamespacedName{Namespace: binding.Namespace, Name: binding.Spec.PlatformName}, platform)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Object not found, return.  Created objects are automatically garbage collected.
-			// For additional cleanup logic use finalizers.
-
-			//TODO: Set status to failed
-			fmt.Println("broker not found")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
@@ -157,29 +140,28 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 		return reconcile.Result{}, err
 	}
 
-	resp, err := bind(broker.Spec.URL, broker.Spec.Username, broker.Spec.Password, instance.Spec.ServiceID, instance.Spec.PlanID, instance.Spec.ID, string(binding.GetUID()))
+	resp, err := bind(broker.Spec.URL, broker.Spec.Username, broker.Spec.Password, instance.Spec.ServiceID, instance.Spec.PlanID, instance.Spec.GUID, string(binding.GetUID()))
 	if err != nil {
 		fmt.Println("binding failed")
 		return reconcile.Result{}, err
 	}
 
-	err = sendToCF(platform.Spec.CF.URL, platform.Spec.CF.Username, platform.Spec.CF.Password, binding.Spec.PlatformAttachmentContext, string(binding.GetUID()), resp.Credentials)
-	if err != nil {
-		fmt.Println("injection failed")
-		return reconcile.Result{}, err
-	}
-	fmt.Println("DONE")
-
 	beforeBinding := binding.DeepCopy()
 
 	binding.Status.Success = true
+
+	s, err := json.Marshal(resp.Credentials)
+	if err != nil {
+		return reconcile.Result{}, err
+	}
+	binding.Status.Credentials = string(s)
 
 	if err := controllerutil.SetControllerReference(broker, binding, r.scheme); err != nil {
 		return reconcile.Result{}, err
 	}
 
 	if !reflect.DeepEqual(beforeBinding, binding) {
-		if err := r.Update(context.TODO(), binding); err != nil {
+		if err := r.Status().Update(context.TODO(), binding); err != nil {
 			return reconcile.Result{}, err
 		}
 	}

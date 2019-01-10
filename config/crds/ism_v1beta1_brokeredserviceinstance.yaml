@@ -24,7 +24,7 @@ spec:
           type: object
         spec:
           properties:
-            id:
+            guid:
               type: string
             name:
               type: string

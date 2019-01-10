@@ -23,7 +23,6 @@ import (
 
 	ismv1beta1 "github.com/pivotal-cf/ism/pkg/apis/ism/v1beta1"
 	osb "github.com/pmorie/go-open-service-broker-client/v2"
-	uuid "github.com/satori/go.uuid"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -141,11 +140,7 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 
 	beforeInstance := instance.DeepCopy()
 
-	if instance.Spec.ID == "" {
-		instance.Spec.ID = uuid.Must(uuid.NewV4()).String()
-	}
-
-	provisionResp, err := provision(broker.Spec.URL, broker.Spec.Username, broker.Spec.Password, instance.Spec.PlanID, service.Spec.ID, instance.Spec.ID)
+	provisionResp, err := provision(broker.Spec.URL, broker.Spec.Username, broker.Spec.Password, instance.Spec.PlanID, service.Spec.ID, instance.Spec.GUID)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
@@ -158,7 +153,7 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 	}
 
 	if !reflect.DeepEqual(beforeInstance, instance) {
-		if err := r.Update(context.TODO(), instance); err != nil {
+		if err := r.Status().Update(context.TODO(), instance); err != nil {
 			return reconcile.Result{}, err
 		}
 	}

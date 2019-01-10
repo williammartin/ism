@@ -24,15 +24,15 @@ spec:
           type: object
         spec:
           properties:
-            platformAttachmentContext:
-              type: string
             platformName:
               type: string
-            serviceInstanceName:
+            serviceInstanceGuid:
               type: string
           type: object
         status:
           properties:
+            credentials:
+              type: string
             success:
               type: boolean
           type: object
