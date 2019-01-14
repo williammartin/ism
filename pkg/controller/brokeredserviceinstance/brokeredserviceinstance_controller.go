@@ -153,6 +153,10 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 	}
 
 	if !reflect.DeepEqual(beforeInstance, instance) {
+		if err := r.Update(context.TODO(), instance); err != nil {
+			return reconcile.Result{}, err
+		}
+
 		if err := r.Status().Update(context.TODO(), instance); err != nil {
 			return reconcile.Result{}, err
 		}

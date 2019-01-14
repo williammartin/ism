@@ -109,6 +109,10 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 
+	if broker.Status.Success {
+		return reconcile.Result{}, nil
+	}
+
 	// err := r.List(context.TODO(),
 
 	fmt.Printf("RECONCILE: %#v\n", broker)
@@ -175,21 +179,15 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 				return reconcile.Result{}, err
 			}
 		}
+	}
 
+	broker.Status.Success = true
+
+	if err := r.Status().Update(context.TODO(), broker); err != nil {
+		return reconcile.Result{}, err
 	}
 
 	fmt.Printf("CATALOG: %#v\n", cat)
-
-	// TODO(user): Change this for the object type created by your controller
-	// Update the found object and write the result back if there are any changes
-	// if !reflect.DeepEqual(deploy.Spec, found.Spec) {
-	// 	found.Spec = deploy.Spec
-	// 	log.Printf("Updating Deployment %s/%s\n", deploy.Namespace, deploy.Name)
-	// 	err = r.Update(context.TODO(), found)
-	// 	if err != nil {
-	// 		return reconcile.Result{}, err
-	// 	}
-	// }
 
 	return reconcile.Result{}, nil
 }

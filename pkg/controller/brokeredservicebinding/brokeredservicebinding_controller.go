@@ -161,6 +161,10 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 	}
 
 	if !reflect.DeepEqual(beforeBinding, binding) {
+		if err := r.Update(context.TODO(), binding); err != nil {
+			return reconcile.Result{}, err
+		}
+
 		if err := r.Status().Update(context.TODO(), binding); err != nil {
 			return reconcile.Result{}, err
 		}

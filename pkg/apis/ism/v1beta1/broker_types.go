@@ -37,6 +37,7 @@ type BrokerSpec struct {
 type BrokerStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Success bool `json:"success,omitempty"`
 }
 
 // +genclient
@@ -44,6 +45,7 @@ type BrokerStatus struct {
 
 // Broker is the Schema for the brokers API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 type Broker struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
