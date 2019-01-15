@@ -24,6 +24,10 @@ spec:
           type: object
         spec:
           properties:
+            migrated:
+              type: boolean
+            migratedCredentials:
+              type: string
             platformName:
               type: string
             serviceInstanceGuid:

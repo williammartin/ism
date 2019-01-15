@@ -124,6 +124,26 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 		return reconcile.Result{}, err
 	}
 
+	if binding.Spec.Migrated {
+		fmt.Println("binding migrated, skipping creation")
+		binding.Status.Success = true
+		binding.Status.Credentials = binding.Spec.MigratedCredentials
+
+		if err := controllerutil.SetControllerReference(instance, binding, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		if err := r.Update(context.TODO(), binding); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		if err := r.Status().Update(context.TODO(), binding); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		return reconcile.Result{}, err
+	}
+
 	//broker
 	broker := &ismv1beta1.Broker{}
 	err = r.Get(context.TODO(), types.NamespacedName{Namespace: binding.Namespace, Name: instance.OwnerReferences[0].Name}, broker)

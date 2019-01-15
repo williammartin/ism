@@ -29,6 +29,8 @@ type BrokeredServiceBindingSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 	ServiceInstanceGUID string `json:"serviceInstanceGuid,omitempty"`
 	PlatformName        string `json:"platformName,omitempty"`
+	Migrated            bool   `json:"migrated,omitempty"`
+	MigratedCredentials string `json:"migratedCredentials,omitempty"`
 }
 
 // BrokeredServiceBindingStatus defines the observed state of BrokeredServiceBinding

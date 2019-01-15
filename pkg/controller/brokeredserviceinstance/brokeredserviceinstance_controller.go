@@ -64,6 +64,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	err = c.Watch(&source.Kind{Type: &ismv1beta1.BrokeredServiceInstance{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
+
 	}
 
 	return nil
@@ -106,16 +107,6 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 		return reconcile.Result{}, err
 	}
 
-	if instance.Spec.Migrated {
-		fmt.Println("instance migrated, skipping creation")
-		instance.Status.Success = true
-		if err := r.Status().Update(context.TODO(), instance); err != nil {
-			return reconcile.Result{}, err
-		}
-
-		return reconcile.Result{}, err
-	}
-
 	//service
 	service := &ismv1beta1.BrokeredService{}
 	err = r.Get(context.TODO(), types.NamespacedName{Namespace: instance.Namespace, Name: instance.Spec.ServiceID}, service)
@@ -148,6 +139,25 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 		return reconcile.Result{}, err
 	}
 
+	if instance.Spec.Migrated {
+		fmt.Println("instance migrated, skipping creation")
+
+		if err := controllerutil.SetControllerReference(broker, instance, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		if err := r.Update(context.TODO(), instance); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		instance.Status.Success = true
+		if err := r.Status().Update(context.TODO(), instance); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		return reconcile.Result{}, err
+	}
+
 	beforeInstance := instance.DeepCopy()
 
 	provisionResp, err := provision(broker.Spec.URL, broker.Spec.Username, broker.Spec.Password, instance.Spec.PlanID, service.Spec.ID, instance.Spec.GUID)
@@ -173,7 +183,7 @@ func (r *ReconcileBrokeredServiceInstance) Reconcile(request reconcile.Request) 
 	}
 
 	return reconcile.Result{}, nil
-
+}
 
 func provision(url, username, password, planID, serviceID, instanceID string) (*osb.ProvisionResponse, error) {
 	config := osb.DefaultClientConfiguration()
