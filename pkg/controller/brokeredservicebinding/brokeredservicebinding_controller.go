@@ -196,6 +196,7 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 func bind(url, username, password, serviceID, planID, instanceID, bindingID string) (*osb.BindResponse, error) {
 	config := osb.DefaultClientConfiguration()
 	config.URL = url
+	config.Insecure = true
 	basicAuthConfig := osb.AuthConfig{
 		BasicAuthConfig: &osb.BasicAuthConfig{
 			Username: username,

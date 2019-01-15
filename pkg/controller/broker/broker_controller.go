@@ -195,6 +195,7 @@ func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result
 func getBrokerCatalog(instance *ismv1beta1.Broker) (*osb.CatalogResponse, error) {
 	config := osb.DefaultClientConfiguration()
 	config.URL = instance.Spec.URL
+	config.Insecure = true
 	basicAuthConfig := osb.AuthConfig{
 		BasicAuthConfig: &osb.BasicAuthConfig{
 			Username: instance.Spec.Username,
