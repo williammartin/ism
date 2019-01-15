@@ -26,6 +26,8 @@ spec:
           properties:
             guid:
               type: string
+            migrated:
+              type: boolean
             name:
               type: string
             planId:
@@ -39,8 +41,6 @@ spec:
               type: boolean
             success:
               type: boolean
-          required:
-          - async
           type: object
   version: v1beta1
 status:

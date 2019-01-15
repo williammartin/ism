@@ -31,6 +31,7 @@ type BrokeredServiceInstanceSpec struct {
 	PlanID    string `json:"planId,omitempty"`
 	Name      string `json:"name,omitempty"`
 	GUID      string `json:"guid,omitempty"`
+	Migrated  bool   `json:"migrated,omitempty"`
 }
 
 // BrokeredServiceInstanceStatus defines the observed state of BrokeredServiceInstance
@@ -38,7 +39,7 @@ type BrokeredServiceInstanceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	Success bool `json:"success,omitempty"`
-	Async   bool `json:"async"`
+	Async   bool `json:"async,omitempty"`
 }
 
 // +genclient

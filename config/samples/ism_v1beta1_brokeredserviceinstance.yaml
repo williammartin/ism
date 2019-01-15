@@ -1,9 +1,11 @@
 apiVersion: ism.ism.pivotal.io/v1beta1
-kind: 
+kind: BrokeredServiceInstance
 metadata:
   labels:
     controller-tools.k8s.io: "1.0"
   name: platform-sample
 spec:
-  # Add fields here
-  foo: bar
+  serviceId: 33ceba5779bfa320a1ef0694d98069df
+  planId: 5ce5a482ff64a53cc1670994d60b9003
+  name: roflservice
+  guid: some-guid
