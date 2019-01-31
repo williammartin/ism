@@ -35,7 +35,7 @@ spec:
           type: object
         status:
           properties:
-            credentials:
+            secretRef:
               type: string
             success:
               type: boolean

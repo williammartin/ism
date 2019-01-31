@@ -3,7 +3,7 @@ kind: BrokeredServiceBinding
 metadata:
   labels:
     controller-tools.k8s.io: "1.0"
-  name: brokeredservicebinding-sample
+  name: spring-music-binding
 spec:
-  serviceInstanceGuid: a90f9e2a-ef60-4de3-bceb-cd83c0bf7fc5
-  platformName: cf1
+  serviceInstanceGuid: d6510c7c-3e95-4d43-b289-f4b160918551
+  platformName: k8s-1

@@ -28,6 +28,7 @@ import (
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	ismv1beta1 "github.com/pivotal-cf/ism/pkg/apis/ism/v1beta1"
 	osb "github.com/pmorie/go-open-service-broker-client/v2"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -127,7 +128,23 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 	if binding.Spec.Migrated {
 		fmt.Println("binding migrated, skipping creation")
 		binding.Status.Success = true
-		binding.Status.Credentials = binding.Spec.MigratedCredentials
+
+		encodedCreds, err := json.Marshal(binding.Spec.MigratedCredentials)
+
+		secret := &corev1.Secret{}
+		secret.Name = string(binding.GetUID())
+		secret.Data = map[string][]byte{"credentials": encodedCreds}
+		secret.Namespace = binding.Namespace
+
+		binding.Status.SecretRef = string(binding.GetUID())
+
+		if err := controllerutil.SetControllerReference(binding, secret, r.scheme); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		if err := r.Create(context.TODO(), secret); err != nil {
+			return reconcile.Result{}, err
+		}
 
 		if err := controllerutil.SetControllerReference(instance, binding, r.scheme); err != nil {
 			return reconcile.Result{}, err
@@ -170,11 +187,25 @@ func (r *ReconcileBrokeredServiceBinding) Reconcile(request reconcile.Request) (
 
 	binding.Status.Success = true
 
-	s, err := json.Marshal(resp.Credentials)
+	encodedCreds, err := json.Marshal(resp.Credentials)
 	if err != nil {
 		return reconcile.Result{}, err
 	}
-	binding.Status.Credentials = string(s)
+
+	secret := &corev1.Secret{}
+	secret.Name = string(binding.GetUID())
+	secret.Data = map[string][]byte{"credentials": encodedCreds}
+	secret.Namespace = binding.Namespace
+
+	binding.Status.SecretRef = string(binding.GetUID())
+
+	if err := controllerutil.SetControllerReference(binding, secret, r.scheme); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	if err := r.Create(context.TODO(), secret); err != nil {
+		return reconcile.Result{}, err
+	}
 
 	if err := controllerutil.SetControllerReference(broker, binding, r.scheme); err != nil {
 		return reconcile.Result{}, err

@@ -39,7 +39,7 @@ func TestStorageBroker(t *testing.T) {
 
 	// Test Create
 	fetched := &Broker{}
-	g.Expect(c.Create(context.TODO(), created)).NotTo(gomega.HaveOccurred())
+	g.Expect(c.Create(context.TODO(), created)).To(gomega.Succeed())
 
 	g.Expect(c.Get(context.TODO(), key, fetched)).NotTo(gomega.HaveOccurred())
 	g.Expect(fetched).To(gomega.Equal(created))

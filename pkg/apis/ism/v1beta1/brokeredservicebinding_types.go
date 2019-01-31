@@ -37,8 +37,8 @@ type BrokeredServiceBindingSpec struct {
 type BrokeredServiceBindingStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Success     bool   `json:"success,omitempty"`
-	Credentials string `json:"credentials,omitempty"`
+	Success   bool   `json:"success,omitempty"`
+	SecretRef string `json:"secretRef,omitempty"`
 }
 
 // +genclient
