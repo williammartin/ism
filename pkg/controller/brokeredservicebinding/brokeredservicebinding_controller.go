@@ -17,15 +17,12 @@ limitations under the License.
 package brokeredservicebinding
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
 	"reflect"
 
 	"fmt"
 
-	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	ismv1beta1 "github.com/pivotal-cf/ism/pkg/apis/ism/v1beta1"
 	osb "github.com/pmorie/go-open-service-broker-client/v2"
 	corev1 "k8s.io/api/core/v1"
@@ -254,64 +251,4 @@ func bind(url, username, password, serviceID, planID, instanceID, bindingID stri
 	}
 
 	return resp, nil
-}
-
-func sendToCF(url, username, password, attachContext, bindingID string, credentials map[string]interface{}) error {
-	fmt.Println(url)
-	c := &cfclient.Config{
-		ApiAddress:        url,
-		Username:          username,
-		Password:          password,
-		SkipSslValidation: true,
-	}
-
-	client, err := cfclient.NewClient(c)
-
-	if err != nil {
-		return err
-	}
-
-	bindingBody, err := createBindingRequest(bindingID, attachContext, credentials)
-
-	if err != nil {
-		return err
-	}
-
-	req := client.NewRequestWithBody("POST", "/v3/external_service_bindings", bytes.NewBuffer(bindingBody))
-
-	resp, err := client.DoRequest(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Printf("%+v", body)
-		return err
-	}
-	return nil
-}
-
-func createBindingRequest(bindingID string, appGUID string, credentials interface{}) ([]byte, error) {
-	b, err := json.Marshal(credentials)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return []byte(`{
-    "type": "app",
-		"name": "` + bindingID + `",
-    "relationships": {
-      "app": {
-        "data": {
-          "guid": "` + appGUID + `"
-         }
-       }
-    },
-    "data": {
-      "credentials": ` + string(b) + `
-    }
-  }`), nil
 }
