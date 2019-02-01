@@ -3,7 +3,7 @@
 arch="amd64"
 
 dep_version="0.5.0"
-kubebuilder_version="1.0.8"
+kubebuilder_version="1.0.7"
 
 # install packages
 apk add build-base git
