@@ -1,12 +1,19 @@
 #!/usr/bin/env sh
 
+set -e
+
 arch="amd64"
 
+go_version="1.11.5"
 dep_version="0.5.0"
 kubebuilder_version="1.0.7"
 
 # install packages
-apk add build-base git
+apt-get -y update
+apt-get install -y build-essential git wget
+
+# install golang
+wget "https://dl.google.com/go/go${go_version}.linux-${arch}.tar.gz" -O - | tar -C /usr/local -xzf -
 
 # install helpful golang tools
 wget -O /usr/local/bin/dep "https://github.com/golang/dep/releases/download/v${dep_version}/dep-linux-${arch}"
