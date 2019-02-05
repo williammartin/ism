@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+export PATH="$PATH:/root/go/bin"
+export GOPATH="$(pwd)"
+cd src/github.com/pivotal-cf/ism
+
+"$@"

@@ -1,0 +1,15 @@
+---
+jobs:
+- name: unit
+  plan:
+  - get: ism
+    trigger: true
+  - task: unit
+    file: ism/ci/tasks/unit.yml
+
+resources:
+- name: ism
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf/ism
+    branch: master
