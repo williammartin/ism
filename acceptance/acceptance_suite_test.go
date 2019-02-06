@@ -1,4 +1,4 @@
-package integration
+package acceptance
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 
 var pathToSMCLI string
 
-func TestIntegration(t *testing.T) {
+func TestAcceptance(t *testing.T) {
 	BeforeSuite(func() {
 		var err error
 		pathToSMCLI, err = Build("github.com/pivotal-cf/ism/cmd/sm")
@@ -22,5 +22,5 @@ func TestIntegration(t *testing.T) {
 	})
 
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Integration Suite")
+	RunSpecs(t, "Acceptance Suite")
 }

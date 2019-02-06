@@ -5,4 +5,4 @@ clean:
 	rm -f sm
 
 test:
-	ginkgo -r integration
+	ginkgo -r acceptance
