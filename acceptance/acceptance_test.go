@@ -18,9 +18,9 @@ var _ = Describe("CLI", func() {
 
 			Eventually(session).Should(Exit(0))
 
-			Eventually(session).Should(Say(`usage: sm \[<flags>\]`))
-			Eventually(session).Should(Say("\n"))
 			Eventually(session).Should(Say("CLI to interact with the Services Marketplace"))
+			Eventually(session).Should(Say("\n"))
+			Eventually(session).Should(Say(`sm \[OPTIONS\] <broker>`))
 		})
 	})
 
@@ -32,9 +32,22 @@ var _ = Describe("CLI", func() {
 
 			Eventually(session).Should(Exit(0))
 
-			Eventually(session).Should(Say(`usage: sm \[<flags>\]`))
-			Eventually(session).Should(Say("\n"))
 			Eventually(session).Should(Say("CLI to interact with the Services Marketplace"))
+			Eventually(session).Should(Say("\n"))
+			Eventually(session).Should(Say(`sm \[OPTIONS\] <broker>`))
+		})
+	})
+
+	XWhen("broker is passed", func() {
+		When("register is passed with args", func() {
+			It("successfully registers", func() {
+				command := exec.Command(pathToSMCLI, "broker", "register", "--name", "my-broker", "--url", "url", "--username", "username", "--password", "password")
+				session, err := Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+
+				Eventually(session).Should(Exit(0))
+				Eventually(session).Should(Say("Broker 'my-broker' registered\\."))
+			})
 		})
 	})
 })
