@@ -3,25 +3,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:315c5f2f60c76d89b871c73f9bd5fe689cad96597afd50fb9992228ef80bdd34"
-  name = "github.com/alecthomas/template"
-  packages = [
-    ".",
-    "parse",
-  ]
-  pruneopts = "UT"
-  revision = "a0175ee3bccc567396460bf5acd36800cb10c49c"
-
-[[projects]]
-  branch = "master"
-  digest = "1:c198fdc381e898e8fb62b8eb62758195091c313ad18e52a3067366e1dda2fb3c"
-  name = "github.com/alecthomas/units"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "2efee857e7cfd4f3d0138cc3cbb1b4966962b93a"
-
-[[projects]]
-  branch = "master"
   digest = "1:59392ed8afb901aab4287d4894df8191722e34f3957716f4350c8c133ce99046"
   name = "github.com/hpcloud/tail"
   packages = [
@@ -33,6 +14,14 @@
   ]
   pruneopts = "UT"
   revision = "a1dbeea552b7c8df4b542c66073e393de198a800"
+
+[[projects]]
+  digest = "1:a2cff208d4759f6ba1b1cd228587b0a1869f95f22542ec9cd17fff64430113c7"
+  name = "github.com/jessevdk/go-flags"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c6ca198ec95c841fdb89fc0de7496fed11ab854e"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:5f4b78246f0bcb105b1e3b2b9e22b52a57cd02f57a8078572fe27c62f4a75ff7"
@@ -131,14 +120,6 @@
   version = "v0.3.0"
 
 [[projects]]
-  digest = "1:c06d9e11d955af78ac3bbb26bd02e01d2f61f689e1a3bce2ef6fb683ef8a7f2d"
-  name = "gopkg.in/alecthomas/kingpin.v2"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "947dcec5ba9c011838740e680966fd7087a71d0d"
-  version = "v2.2.6"
-
-[[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "gopkg.in/fsnotify/fsnotify.v1"
   packages = ["."]
@@ -165,11 +146,11 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/jessevdk/go-flags",
     "github.com/onsi/ginkgo",
     "github.com/onsi/gomega",
     "github.com/onsi/gomega/gbytes",
     "github.com/onsi/gomega/gexec",
-    "gopkg.in/alecthomas/kingpin.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
