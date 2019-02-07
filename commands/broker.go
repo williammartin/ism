@@ -3,13 +3,14 @@ package commands
 import "fmt"
 
 type BrokerCommand struct {
+	RegisterCommand RegisterCommand `command:"register" long-description:"Register a Service Broker into the marketplace"`
 }
 
 type RegisterCommand struct {
-	Name     string `long:"name" description:"name of the broker to regsiter"`
-	URL      string `long:"url" description:"url of the broker to regsiter"`
-	Username string `long:"username" description:"username of the broker to regsiter"`
-	Password string `long:"password" description:"password of the broker to regsiter"`
+	Name     string `long:"name" description:"Name of the Service Broker"`
+	URL      string `long:"url" description:"URL of the Service Broker"`
+	Username string `long:"username" description:"Username of the Service Broker"`
+	Password string `long:"password" description:"Password of the Service Broker"`
 }
 
 func (cmd *RegisterCommand) Execute([]string) error {
