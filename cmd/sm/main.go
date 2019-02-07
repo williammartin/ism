@@ -4,30 +4,17 @@ import (
 	"fmt"
 
 	flags "github.com/jessevdk/go-flags"
+	"github.com/pivotal-cf/ism/commands"
 )
 
-type smCommand struct {
-	BrokerCommand brokerCommand `command:"broker"`
-}
-
-type brokerCommand struct {
-	RegisterCommand registerCommand `command:"register"`
-}
-
-type registerCommand struct {
-	Name string `long:"name" description:"name of the broker to regsiter"`
-}
-
-func (cmd *registerCommand) Execute([]string) error {
-	fmt.Println("listyList")
-	return nil
-}
-
 func main() {
-	cmd := &smCommand{}
-	parser := flags.NewParser(cmd, flags.HelpFlag|flags.PassDoubleDash)
+	parser := flags.NewParser(nil, flags.HelpFlag|flags.PassDoubleDash)
 
-	fmt.Println("CLI to interact with the Services Marketplace")
+	// TODO: Do we need empty type for BrokerCommand?
+	brokerCommand, _ := parser.AddCommand("broker", "broker commands", "The broker command group lets you register, update and deregister service brokers from the marketplace", &commands.BrokerCommand{})
+
+	brokerCommand.AddCommand("register", "register a broker", "Register a service broker into the marketplace", &commands.RegisterCommand{})
+
 	_, err := parser.Parse()
 
 	if err != nil {
