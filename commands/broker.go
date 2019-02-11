@@ -7,8 +7,8 @@ type BrokerCommand struct {
 }
 
 type RegisterCommand struct {
-	Name     string `long:"name" description:"Name of the Service Broker"`
-	URL      string `long:"url" description:"URL of the Service Broker"`
+	Name     string `long:"name" description:"Name of the Service Broker" required:"true"`
+	URL      string `long:"url" description:"URL of the Service Broker" required:"true"`
 	Username string `long:"username" description:"Username of the Service Broker"`
 	Password string `long:"password" description:"Password of the Service Broker"`
 }
