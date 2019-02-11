@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"os"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
@@ -63,9 +64,37 @@ var _ = Describe("CLI services command", func() {
 		})
 
 		When("0 brokers are registered", func() {
-			It("displays 'No brokers found.' and exits 0", func() {
+			It("displays 'No services found.' and exits 0", func() {
 				Eventually(session).Should(Exit(0))
-				Eventually(session).Should(Say("No brokers found\\."))
+				Eventually(session).Should(Say("No services found\\."))
+			})
+		})
+
+		When("1 broker is registered", func() {
+			BeforeEach(func() {
+				// Step 0 - deploy a broker
+
+				// Step 1 - get broker url, name and password from ENV
+				brokerURL := os.Getenv("BROKER_URL")
+				brokerUsername := os.Getenv("BROKER_USERNAME")
+				brokerPassword := os.Getenv("BROKER_PASSWORD")
+
+				// Step 2 - run sm broker register --name x -- etc.
+				registerArgs := []string{"broker", "register",
+					"--name", "test-broker",
+					"--url", brokerURL,
+					"--username", brokerUsername,
+					"--password", brokerPassword}
+				command := exec.Command(pathToSMCLI, registerArgs...)
+				registerSession, err := Start(command, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(registerSession).Should(Exit(0))
+			})
+
+			XIt("displays services and plans for the broker", func() {
+				Eventually(session).Should(Exit(0))
+				Eventually(session).Should(Say(`^NAME\\s+PLANS\\s+BROKER\\s+DESCRIPTION$`))
+				Eventually(session).Should(Say(`^overview-service\\s+simple\\s+test-broker\\s+lol whatevs$`))
 			})
 		})
 

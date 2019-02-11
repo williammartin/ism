@@ -6,7 +6,7 @@ SM = bin/sm
 all: clean test manager cli
 
 # Run tests
-test: generate fmt vet manifests kubebuilder-tests acceptance-tests
+test: generate fmt vet manifests kubebuilder-tests unit-tests acceptance-tests
 
 # Build manager binary
 manager: generate fmt vet
@@ -64,6 +64,10 @@ clean:
 # Run acceptance tests
 acceptance-tests:
 	ginkgo -r acceptance
+
+# Run unit tests
+unit-tests:
+	ginkgo -r actors commands ui
 
 # Run kubebuilder tests
 kubebuilder-tests:
