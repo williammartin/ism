@@ -1,6 +1,15 @@
 package commands
 
-import "fmt"
+import (
+	"github.com/pivotal-cf/ism/osbapi"
+)
+
+//go:generate counterfeiter . BrokerRegistrar
+
+//TODO: godoc
+type BrokerRegistrar interface {
+	Register(*osbapi.Broker) error
+}
 
 type BrokerCommand struct {
 	RegisterCommand RegisterCommand `command:"register" long-description:"Register a Service Broker into the marketplace"`
@@ -9,11 +18,26 @@ type BrokerCommand struct {
 type RegisterCommand struct {
 	Name     string `long:"name" description:"Name of the Service Broker" required:"true"`
 	URL      string `long:"url" description:"URL of the Service Broker" required:"true"`
-	Username string `long:"username" description:"Username of the Service Broker"`
-	Password string `long:"password" description:"Password of the Service Broker"`
+	Username string `long:"username" description:"Username of the Service Broker" required:"true"`
+	Password string `long:"password" description:"Password of the Service Broker" required:"true"`
+
+	UI              UI
+	BrokerRegistrar BrokerRegistrar
 }
 
 func (cmd *RegisterCommand) Execute([]string) error {
-	fmt.Printf("Broker '%s' registered.\n", cmd.Name)
+	newBroker := &osbapi.Broker{
+		Name:     cmd.Name,
+		URL:      cmd.URL,
+		Username: cmd.Username,
+		Password: cmd.Password,
+	}
+
+	if err := cmd.BrokerRegistrar.Register(newBroker); err != nil {
+		return err
+	}
+
+	cmd.UI.DisplayText("Broker '{{.BrokerName}}' registered.", map[string]interface{}{"BrokerName": cmd.Name})
+
 	return nil
 }

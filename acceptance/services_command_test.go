@@ -91,7 +91,7 @@ var _ = Describe("CLI services command", func() {
 				Eventually(registerSession).Should(Exit(0))
 			})
 
-			XIt("displays services and plans for the broker", func() {
+			PIt("displays services and plans for the broker", func() {
 				Eventually(session).Should(Exit(0))
 				Eventually(session).Should(Say(`^NAME\\s+PLANS\\s+BROKER\\s+DESCRIPTION$`))
 				Eventually(session).Should(Say(`^overview-service\\s+simple\\s+test-broker\\s+lol whatevs$`))

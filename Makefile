@@ -6,7 +6,7 @@ SM = bin/sm
 all: clean test manager cli
 
 # Run tests
-test: generate fmt vet manifests kubebuilder-tests unit-tests acceptance-tests
+test: generate fmt vet manifests kubebuilder-tests unit-tests
 
 # Build manager binary
 manager: generate fmt vet

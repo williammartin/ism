@@ -25,4 +25,19 @@ var _ = Describe("UI", func() {
 			Expect(testUI.Out).To(Say("This is a test for the UI struct\n"))
 		})
 	})
+
+	Describe("DisplayTable", func() {
+		It("prints a table, with the first row bold", func() {
+			testUI.DisplayTable([][]string{
+				{"header1", "header2", "header3"},
+				{"data1", "mydata2", "data3"},
+				{"data4", "data5", "data6"},
+			})
+			Expect(testUI.Out).To(Say("\x1b\\[1mheader1\x1b\\[0m"))
+			Expect(testUI.Out).To(Say("\x1b\\[1mheader2\x1b\\[0m"))
+			Expect(testUI.Out).To(Say("\x1b\\[1mheader3\x1b\\[0m"))
+			Expect(testUI.Out).To(Say(`data1\s+mydata2\s+data3`))
+			Expect(testUI.Out).To(Say(`data4\s+data5\s+data6`))
+		})
+	})
 })

@@ -8,6 +8,11 @@ import (
 )
 
 type FakeUI struct {
+	DisplayTableStub        func([][]string)
+	displayTableMutex       sync.RWMutex
+	displayTableArgsForCall []struct {
+		arg1 [][]string
+	}
 	DisplayTextStub        func(string, ...map[string]interface{})
 	displayTextMutex       sync.RWMutex
 	displayTextArgsForCall []struct {
@@ -16,6 +21,42 @@ type FakeUI struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeUI) DisplayTable(arg1 [][]string) {
+	var arg1Copy [][]string
+	if arg1 != nil {
+		arg1Copy = make([][]string, len(arg1))
+		copy(arg1Copy, arg1)
+	}
+	fake.displayTableMutex.Lock()
+	fake.displayTableArgsForCall = append(fake.displayTableArgsForCall, struct {
+		arg1 [][]string
+	}{arg1Copy})
+	fake.recordInvocation("DisplayTable", []interface{}{arg1Copy})
+	fake.displayTableMutex.Unlock()
+	if fake.DisplayTableStub != nil {
+		fake.DisplayTableStub(arg1)
+	}
+}
+
+func (fake *FakeUI) DisplayTableCallCount() int {
+	fake.displayTableMutex.RLock()
+	defer fake.displayTableMutex.RUnlock()
+	return len(fake.displayTableArgsForCall)
+}
+
+func (fake *FakeUI) DisplayTableCalls(stub func([][]string)) {
+	fake.displayTableMutex.Lock()
+	defer fake.displayTableMutex.Unlock()
+	fake.DisplayTableStub = stub
+}
+
+func (fake *FakeUI) DisplayTableArgsForCall(i int) [][]string {
+	fake.displayTableMutex.RLock()
+	defer fake.displayTableMutex.RUnlock()
+	argsForCall := fake.displayTableArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeUI) DisplayText(arg1 string, arg2 ...map[string]interface{}) {
@@ -53,6 +94,8 @@ func (fake *FakeUI) DisplayTextArgsForCall(i int) (string, []map[string]interfac
 func (fake *FakeUI) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.displayTableMutex.RLock()
+	defer fake.displayTableMutex.RUnlock()
 	fake.displayTextMutex.RLock()
 	defer fake.displayTextMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

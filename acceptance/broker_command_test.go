@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"io"
 	"os/exec"
 
 	. "github.com/onsi/ginkgo"
@@ -53,8 +54,15 @@ var _ = Describe("CLI broker command", func() {
 				args = append(args, "--name", "my-broker", "--url", "url", "--username", "username", "--password", "password")
 			})
 
-			It("successfully registers the service broker", func() {
+			AfterEach(func() {
+				deleteAllBrokers()
+			})
+
+			It("successfully registers the broker, and displays a message", func() {
 				Eventually(session).Should(Exit(0))
+
+				ensureBrokerExists("my-broker")
+
 				Eventually(session).Should(Say("Broker 'my-broker' registered\\."))
 			})
 		})
@@ -73,32 +81,28 @@ var _ = Describe("CLI broker command", func() {
 			})
 		})
 
-		When("--name is not passed", func() {
-			BeforeEach(func() {
-				args = append(args, "--url", "url")
-			})
-
-			It("displays help and exits 0", func() {
+		When("required arguments are not passed", func() {
+			It("displays an informative message and exits 0", func() {
 				Eventually(session).Should(Exit(0))
-				Eventually(session).Should(Say("Usage:"))
-				Eventually(session).Should(Say(`sm \[OPTIONS\] broker register \[register-OPTIONS\]`))
-				Eventually(session).Should(Say("\n"))
-				Eventually(session).Should(Say("Register a Service Broker into the marketplace"))
-			})
-		})
-
-		When("--url is not passed", func() {
-			BeforeEach(func() {
-				args = append(args, "--name", "name")
-			})
-
-			It("displays help and exits 0", func() {
-				Eventually(session).Should(Exit(0))
-				Eventually(session).Should(Say("Usage:"))
-				Eventually(session).Should(Say(`sm \[OPTIONS\] broker register \[register-OPTIONS\]`))
-				Eventually(session).Should(Say("\n"))
-				Eventually(session).Should(Say("Register a Service Broker into the marketplace"))
+				Eventually(session).Should(Say("the required flags `--name', `--password', `--url' and `--username' were not specified"))
 			})
 		})
 	})
 })
+
+func ensureBrokerExists(brokerName string) {
+	outBuffer := NewBuffer()
+	getBrokersCmd := exec.Command("kubectl", "get", "brokers")
+	getBrokersCmd.Stdout = io.MultiWriter(outBuffer, GinkgoWriter)
+	getBrokersCmd.Stderr = GinkgoWriter
+
+	Expect(getBrokersCmd.Run()).To(Succeed())
+	Expect(outBuffer).To(Say(brokerName))
+}
+
+func deleteAllBrokers() {
+	deleteBrokersCmd := exec.Command("kubectl", "delete", "brokers", "--all")
+	deleteBrokersCmd.Stdout = GinkgoWriter
+	deleteBrokersCmd.Stderr = GinkgoWriter
+	Expect(deleteBrokersCmd.Run()).To(Succeed())
+}

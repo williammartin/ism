@@ -6,6 +6,12 @@ jobs:
     trigger: true
   - task: unit
     file: ism/ci/tasks/unit.yml
+- name: absolute-unit
+  plan:
+  - get: ism
+    trigger: true
+  - task: absolute-unit
+    file: ism/ci/tasks/unit.yml
 
 resources:
 - name: ism

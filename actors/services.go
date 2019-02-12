@@ -1,13 +1,20 @@
 package actors
 
-// TODO: godoc
-type Service struct{}
+import "github.com/pivotal-cf/ism/osbapi"
+
+//go:generate counterfeiter . ServiceRepository
 
 // TODO: godoc
-type ServicesActor struct{}
+type ServiceRepository interface {
+	FindByBroker(brokerID string) ([]*osbapi.Service, error)
+}
 
 // TODO: godoc
-func (a *ServicesActor) GetServices() ([]Service, error) {
+type ServicesActor struct {
+	Repository ServiceRepository
+}
 
-	return []Service{}, nil
+// TODO: godoc
+func (a *ServicesActor) GetServices(brokerID string) ([]*osbapi.Service, error) {
+	return a.Repository.FindByBroker(brokerID)
 }

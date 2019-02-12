@@ -1,0 +1,11 @@
+apiVersion: osbapi.ism.io/v1alpha1
+kind: Broker
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: broker-sample
+spec:
+  name: "my-broker"
+  url: "http://my-broker.com"
+  username: "admin"
+  password: "password"
