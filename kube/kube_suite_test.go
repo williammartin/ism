@@ -1,35 +1,38 @@
 package kube_test
 
 import (
-	"fmt"
-	"os"
+	"path/filepath"
 	"testing"
 
-	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
+	"github.com/pivotal-cf/ism/pkg/apis"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/rest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
+var cfg *rest.Config
+
 func TestKube(t *testing.T) {
+	var testEnv *envtest.Environment
+
+	BeforeSuite(func() {
+		testEnv = &envtest.Environment{
+			CRDDirectoryPaths: []string{filepath.Join("..", "config", "crds")},
+		}
+		apis.AddToScheme(scheme.Scheme)
+
+		var err error
+		cfg, err = testEnv.Start()
+		Expect(err).NotTo(HaveOccurred())
+	})
+
+	AfterSuite(func() {
+		testEnv.Stop()
+	})
+
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Kube Suite")
-}
-
-func buildKubeClient() (client.Client, error) {
-	home := os.Getenv("HOME")
-	kubeconfigFilepath := fmt.Sprintf("%s/.kube/config", home)
-	crdConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigFilepath)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := v1alpha1.AddToScheme(scheme.Scheme); err != nil {
-		return nil, err
-	}
-
-	return client.New(crdConfig, client.Options{Scheme: scheme.Scheme})
 }

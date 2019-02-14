@@ -7,6 +7,13 @@ jobs:
   - task: unit
     file: ism/ci/tasks/unit.yml
 
+- name: integration
+  plan:
+  - get: ism
+    trigger: true
+  - task: integration
+    file: ism/ci/tasks/integration.yml
+
 - name: acceptance
   plan:
   - get: ism

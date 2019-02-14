@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/kubernetes/scheme"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -25,9 +26,7 @@ var _ = Describe("Broker", func() {
 
 	BeforeEach(func() {
 		var err error
-		// TODO: should we use the test env stuff, but point it to a real cluster?
-		// i.e. to ensure the up-to-date CRD is installed?
-		kubeClient, err = buildKubeClient()
+		kubeClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 		Expect(err).NotTo(HaveOccurred())
 
 		broker = &Broker{
