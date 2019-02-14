@@ -1,6 +1,8 @@
 package kube_test
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
@@ -18,7 +20,8 @@ func TestKube(t *testing.T) {
 }
 
 func buildKubeClient() (client.Client, error) {
-	kubeconfigFilepath := "$HOME/.kube/config"
+	home := os.Getenv("HOME")
+	kubeconfigFilepath := fmt.Sprintf("%s/.kube/config", home)
 	crdConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigFilepath)
 	if err != nil {
 		return nil, err
