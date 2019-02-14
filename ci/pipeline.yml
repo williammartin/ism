@@ -1,17 +1,20 @@
 ---
 jobs:
-- name: unit
+- name: absolute-unit
   plan:
   - get: ism
     trigger: true
   - task: unit
     file: ism/ci/tasks/unit.yml
-- name: absolute-unit
+
+- name: acceptance
   plan:
   - get: ism
     trigger: true
-  - task: absolute-unit
-    file: ism/ci/tasks/unit.yml
+  - task: acceptance
+    file: ism/ci/tasks/acceptance.yml
+    params:
+      KUBECONFIG_FILE_CONTENTS: {{KUBECONFIG_FILE_CONTENTS}}
 
 resources:
 - name: ism

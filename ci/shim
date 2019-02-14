@@ -4,4 +4,9 @@ export PATH="$PATH:/root/go/bin"
 export GOPATH="$(pwd)"
 cd src/github.com/pivotal-cf/ism
 
+if [ -n "$KUBECONFIG_FILE_CONTENTS" ]; then
+    mkdir -p "$HOME/.kube"
+    echo "$KUBECONFIG_FILE_CONTENTS" > "$HOME/.kube/config"
+fi
+
 "$@"

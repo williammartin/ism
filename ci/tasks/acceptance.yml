@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: ismteam/ci
+    tag: 0.0.1
+
+inputs:
+- name: ism
+  path: src/github.com/pivotal-cf/ism
+
+params:
+- KUBECONFIG_FILE_CONTENTS:
+
+run:
+  path: src/github.com/pivotal-cf/ism/ci/shim
+  args:
+     - make
+     - acceptance-tests
