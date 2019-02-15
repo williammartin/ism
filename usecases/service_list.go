@@ -23,13 +23,13 @@ type PlansActor interface {
 	GetPlans(serviceID string) ([]*osbapi.Plan, error)
 }
 
-type ListServicesUsecase struct {
+type ServiceListUsecase struct {
 	BrokersActor  BrokersActor
 	ServicesActor ServicesActor
 	PlansActor    PlansActor
 }
 
-func (u *ListServicesUsecase) GetServices() ([]*Service, error) {
+func (u *ServiceListUsecase) GetServices() ([]*Service, error) {
 	brokers, err := u.BrokersActor.GetBrokers()
 	if err != nil {
 		return []*Service{}, err

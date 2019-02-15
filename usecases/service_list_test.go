@@ -11,14 +11,14 @@ import (
 	"github.com/pivotal-cf/ism/usecases/usecasesfakes"
 )
 
-var _ = Describe("List Services Usecase", func() {
+var _ = Describe("Service List Usecase", func() {
 
 	var (
 		fakeBrokersActor  *usecasesfakes.FakeBrokersActor
 		fakeServicesActor *usecasesfakes.FakeServicesActor
 		fakePlansActor    *usecasesfakes.FakePlansActor
 
-		listServicesUsecase ListServicesUsecase
+		serviceListUsecase ServiceListUsecase
 
 		services   []*Service
 		executeErr error
@@ -29,7 +29,7 @@ var _ = Describe("List Services Usecase", func() {
 		fakeServicesActor = &usecasesfakes.FakeServicesActor{}
 		fakePlansActor = &usecasesfakes.FakePlansActor{}
 
-		listServicesUsecase = ListServicesUsecase{
+		serviceListUsecase = ServiceListUsecase{
 			BrokersActor:  fakeBrokersActor,
 			ServicesActor: fakeServicesActor,
 			PlansActor:    fakePlansActor,
@@ -37,7 +37,7 @@ var _ = Describe("List Services Usecase", func() {
 	})
 
 	JustBeforeEach(func() {
-		services, executeErr = listServicesUsecase.GetServices()
+		services, executeErr = serviceListUsecase.GetServices()
 	})
 
 	It("fetches all brokers", func() {

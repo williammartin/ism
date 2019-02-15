@@ -43,7 +43,7 @@ func main() {
 		Repository: planRepository,
 	}
 
-	listServicesUsecase := &usecases.ListServicesUsecase{
+	serviceListUsecase := &usecases.ServiceListUsecase{
 		BrokersActor:  brokersActor,
 		ServicesActor: servicesActor,
 		PlansActor:    plansActor,
@@ -56,10 +56,10 @@ func main() {
 				BrokerRegistrar: brokersActor,
 			},
 		},
-		ServicesCommand: commands.ServicesCommand{
-			ListCommand: commands.ListCommand{
-				UI:                  UI,
-				ListServicesUsecase: listServicesUsecase,
+		ServiceCommand: commands.ServiceCommand{
+			ServiceListCommand: commands.ServiceListCommand{
+				UI:                 UI,
+				ServiceListUsecase: serviceListUsecase,
 			},
 		},
 	}

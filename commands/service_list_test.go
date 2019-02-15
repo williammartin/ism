@@ -11,24 +11,24 @@ import (
 	"github.com/pivotal-cf/ism/usecases"
 )
 
-var _ = Describe("Services List Command", func() {
+var _ = Describe("Service List Command", func() {
 
 	var (
-		fakeUsecase *commandsfakes.FakeListServicesUsecase
+		fakeUsecase *commandsfakes.FakeServiceListUsecase
 		fakeUI      *commandsfakes.FakeUI
 
-		listCommand ListCommand
+		listCommand ServiceListCommand
 
 		executeErr error
 	)
 
 	BeforeEach(func() {
-		fakeUsecase = &commandsfakes.FakeListServicesUsecase{}
+		fakeUsecase = &commandsfakes.FakeServiceListUsecase{}
 		fakeUI = &commandsfakes.FakeUI{}
 
-		listCommand = ListCommand{
-			ListServicesUsecase: fakeUsecase,
-			UI:                  fakeUI,
+		listCommand = ServiceListCommand{
+			ServiceListUsecase: fakeUsecase,
+			UI:                 fakeUI,
 		}
 	})
 

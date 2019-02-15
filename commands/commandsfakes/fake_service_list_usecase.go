@@ -8,7 +8,7 @@ import (
 	usecases "github.com/pivotal-cf/ism/usecases"
 )
 
-type FakeListServicesUsecase struct {
+type FakeServiceListUsecase struct {
 	GetServicesStub        func() ([]*usecases.Service, error)
 	getServicesMutex       sync.RWMutex
 	getServicesArgsForCall []struct {
@@ -25,7 +25,7 @@ type FakeListServicesUsecase struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeListServicesUsecase) GetServices() ([]*usecases.Service, error) {
+func (fake *FakeServiceListUsecase) GetServices() ([]*usecases.Service, error) {
 	fake.getServicesMutex.Lock()
 	ret, specificReturn := fake.getServicesReturnsOnCall[len(fake.getServicesArgsForCall)]
 	fake.getServicesArgsForCall = append(fake.getServicesArgsForCall, struct {
@@ -42,19 +42,19 @@ func (fake *FakeListServicesUsecase) GetServices() ([]*usecases.Service, error) 
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeListServicesUsecase) GetServicesCallCount() int {
+func (fake *FakeServiceListUsecase) GetServicesCallCount() int {
 	fake.getServicesMutex.RLock()
 	defer fake.getServicesMutex.RUnlock()
 	return len(fake.getServicesArgsForCall)
 }
 
-func (fake *FakeListServicesUsecase) GetServicesCalls(stub func() ([]*usecases.Service, error)) {
+func (fake *FakeServiceListUsecase) GetServicesCalls(stub func() ([]*usecases.Service, error)) {
 	fake.getServicesMutex.Lock()
 	defer fake.getServicesMutex.Unlock()
 	fake.GetServicesStub = stub
 }
 
-func (fake *FakeListServicesUsecase) GetServicesReturns(result1 []*usecases.Service, result2 error) {
+func (fake *FakeServiceListUsecase) GetServicesReturns(result1 []*usecases.Service, result2 error) {
 	fake.getServicesMutex.Lock()
 	defer fake.getServicesMutex.Unlock()
 	fake.GetServicesStub = nil
@@ -64,7 +64,7 @@ func (fake *FakeListServicesUsecase) GetServicesReturns(result1 []*usecases.Serv
 	}{result1, result2}
 }
 
-func (fake *FakeListServicesUsecase) GetServicesReturnsOnCall(i int, result1 []*usecases.Service, result2 error) {
+func (fake *FakeServiceListUsecase) GetServicesReturnsOnCall(i int, result1 []*usecases.Service, result2 error) {
 	fake.getServicesMutex.Lock()
 	defer fake.getServicesMutex.Unlock()
 	fake.GetServicesStub = nil
@@ -80,7 +80,7 @@ func (fake *FakeListServicesUsecase) GetServicesReturnsOnCall(i int, result1 []*
 	}{result1, result2}
 }
 
-func (fake *FakeListServicesUsecase) Invocations() map[string][][]interface{} {
+func (fake *FakeServiceListUsecase) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getServicesMutex.RLock()
@@ -92,7 +92,7 @@ func (fake *FakeListServicesUsecase) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeListServicesUsecase) recordInvocation(key string, args []interface{}) {
+func (fake *FakeServiceListUsecase) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -104,4 +104,4 @@ func (fake *FakeListServicesUsecase) recordInvocation(key string, args []interfa
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ commands.ListServicesUsecase = new(FakeListServicesUsecase)
+var _ commands.ServiceListUsecase = new(FakeServiceListUsecase)

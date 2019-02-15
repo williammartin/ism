@@ -6,10 +6,10 @@ import (
 	"github.com/pivotal-cf/ism/usecases"
 )
 
-//go:generate counterfeiter . ListServicesUsecase
+//go:generate counterfeiter . ServiceListUsecase
 
 // TODO: godoc
-type ListServicesUsecase interface {
+type ServiceListUsecase interface {
 	GetServices() ([]*usecases.Service, error)
 }
 
@@ -23,20 +23,20 @@ type UI interface {
 
 // TODO: godoc
 // TODO: Rename to Service
-type ServicesCommand struct {
-	ListCommand ListCommand `command:"list" long-description:"List the services that are available in the marketplace."`
+type ServiceCommand struct {
+	ServiceListCommand ServiceListCommand `command:"list" long-description:"List the services that are available in the marketplace."`
 }
 
 // TODO: godoc
-type ListCommand struct {
-	UI                  UI
-	ListServicesUsecase ListServicesUsecase
+type ServiceListCommand struct {
+	UI                 UI
+	ServiceListUsecase ServiceListUsecase
 }
 
 // TODO: godoc
 // TODO: Rename to ServiceList
-func (cmd *ListCommand) Execute([]string) error {
-	services, err := cmd.ListServicesUsecase.GetServices()
+func (cmd *ServiceListCommand) Execute([]string) error {
+	services, err := cmd.ServiceListUsecase.GetServices()
 	if err != nil {
 		return err
 	}
