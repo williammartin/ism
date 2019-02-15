@@ -16,7 +16,23 @@ type Broker struct {
 }
 
 func (r *Broker) FindAll() ([]*osbapi.Broker, error) {
-	return []*osbapi.Broker{}, nil
+	list := &v1alpha1.BrokerList{}
+	if err := r.KubeClient.List(context.TODO(), &client.ListOptions{}, list); err != nil {
+		return []*osbapi.Broker{}, err
+	}
+
+	brokers := []*osbapi.Broker{}
+	for _, b := range list.Items {
+		brokers = append(brokers, &osbapi.Broker{
+			ID:       string(b.UID),
+			Name:     b.Spec.Name,
+			URL:      b.Spec.URL,
+			Username: b.Spec.Username,
+			Password: b.Spec.Password,
+		})
+	}
+
+	return brokers, nil
 }
 
 func (r *Broker) Register(broker *osbapi.Broker) error {

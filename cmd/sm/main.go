@@ -30,12 +30,18 @@ func main() {
 	}
 
 	brokerRepository := &kube.Broker{KubeClient: kubeClient}
+	serviceRepository := &kube.Service{KubeClient: kubeClient}
+	planRepository := &kube.Plan{KubeClient: kubeClient}
 
 	brokersActor := &actors.BrokersActor{
 		Repository: brokerRepository,
 	}
-	servicesActor := &actors.ServicesActor{}
-	plansActor := &actors.PlansActor{}
+	servicesActor := &actors.ServicesActor{
+		Repository: serviceRepository,
+	}
+	plansActor := &actors.PlansActor{
+		Repository: planRepository,
+	}
 
 	listServicesUsecase := &usecases.ListServicesUsecase{
 		BrokersActor:  brokersActor,

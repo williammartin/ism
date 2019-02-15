@@ -12,8 +12,10 @@ type Service struct {
 	ID          string
 	Name        string
 	Description string
+	BrokerID    string
 }
 
 type Plan struct {
-	Name string
+	Name      string
+	ServiceID string
 }

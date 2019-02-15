@@ -8,6 +8,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega/gstruct"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -49,13 +50,7 @@ var _ = Describe("Broker", func() {
 		})
 
 		AfterEach(func() {
-			bToDelete := &v1alpha1.Broker{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "broker-1",
-					Namespace: "default",
-				},
-			}
-			Expect(kubeClient.Delete(context.TODO(), bToDelete)).To(Succeed())
+			deleteBrokers(kubeClient, "broker-1")
 		})
 
 		It("creates a new Broker resource instance", func() {
@@ -95,4 +90,59 @@ var _ = Describe("Broker", func() {
 			})
 		})
 	})
+
+	Describe("FindAll", func() {
+		var (
+			brokers []*osbapi.Broker
+			err     error
+		)
+
+		BeforeEach(func() {
+			brokerResource := &v1alpha1.Broker{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "broker-1",
+					Namespace: "default",
+				},
+				Spec: v1alpha1.BrokerSpec{
+					Name:     "broker-1",
+					URL:      "broker-1-url",
+					Username: "broker-1-username",
+					Password: "broker-1-password",
+				},
+			}
+
+			Expect(kubeClient.Create(context.TODO(), brokerResource)).To(Succeed())
+		})
+
+		JustBeforeEach(func() {
+			brokers, err = broker.FindAll()
+		})
+
+		AfterEach(func() {
+			deleteBrokers(kubeClient, "broker-1")
+		})
+
+		It("returns all brokers", func() {
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(*brokers[0]).To(MatchFields(IgnoreExtras, Fields{
+				"Name":     Equal("broker-1"),
+				"URL":      Equal("broker-1-url"),
+				"Username": Equal("broker-1-username"),
+				"Password": Equal("broker-1-password"),
+			}))
+		})
+	})
 })
+
+func deleteBrokers(kubeClient client.Client, brokerNames ...string) {
+	for _, b := range brokerNames {
+		bToDelete := &v1alpha1.Broker{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      b,
+				Namespace: "default",
+			},
+		}
+		Expect(kubeClient.Delete(context.TODO(), bToDelete)).To(Succeed())
+	}
+}

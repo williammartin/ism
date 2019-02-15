@@ -1,0 +1,10 @@
+apiVersion: osbapi.ism.io/v1alpha1
+kind: BrokerService
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: brokerservice-sample-2
+spec:
+  name: service-2
+  description: my-service-2
+  brokerID: 1fcaf078-3117-11e9-8060-42010a8401b0
