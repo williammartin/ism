@@ -63,7 +63,7 @@ var _ = Describe("Brokers Actor", func() {
 		})
 	})
 
-	Describe("RegisterBroker", func() {
+	Describe("Register", func() {
 		var err error
 
 		JustBeforeEach(func() {

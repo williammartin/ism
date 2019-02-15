@@ -26,7 +26,7 @@ func TestAcceptance(t *testing.T) {
 		pathToSMCLI, err = Build("github.com/pivotal-cf/ism/cmd/sm")
 		Expect(err).NotTo(HaveOccurred())
 
-		kubeClient, err = BuildKubeClient()
+		kubeClient, err = buildKubeClient()
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -38,10 +38,10 @@ func TestAcceptance(t *testing.T) {
 	RunSpecs(t, "Acceptance Suite")
 }
 
-func BuildKubeClient() (client.Client, error) {
+func buildKubeClient() (client.Client, error) {
 	home := os.Getenv("HOME")
 	kubeconfigFilepath := fmt.Sprintf("%s/.kube/config", home)
-	crdConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigFilepath)
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigFilepath)
 	if err != nil {
 		return nil, err
 	}
@@ -50,5 +50,5 @@ func BuildKubeClient() (client.Client, error) {
 		return nil, err
 	}
 
-	return client.New(crdConfig, client.Options{Scheme: scheme.Scheme})
+	return client.New(clientConfig, client.Options{Scheme: scheme.Scheme})
 }

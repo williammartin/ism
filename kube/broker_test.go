@@ -79,7 +79,7 @@ var _ = Describe("Broker", func() {
 
 		When("creating a new Broker fails", func() {
 			BeforeEach(func() {
-				// register the broker first, so the second register errors
+				// register the broker first, so that the second register errors
 				b := &osbapi.Broker{
 					Name:     "broker-1",
 					URL:      "broker-1-url",

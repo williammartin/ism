@@ -65,7 +65,6 @@ func main() {
 
 	_, err = parser.Parse()
 
-	// TODO: How do we display which options are actually required as part of help
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -74,7 +73,7 @@ func main() {
 func buildKubeClient() (client.Client, error) {
 	home := os.Getenv("HOME")
 	kubeconfigFilepath := fmt.Sprintf("%s/.kube/config", home)
-	crdConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigFilepath)
+	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigFilepath)
 	if err != nil {
 		return nil, err
 	}
@@ -83,5 +82,5 @@ func buildKubeClient() (client.Client, error) {
 		return nil, err
 	}
 
-	return client.New(crdConfig, client.Options{Scheme: scheme.Scheme})
+	return client.New(clientConfig, client.Options{Scheme: scheme.Scheme})
 }
