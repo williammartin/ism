@@ -18,6 +18,8 @@ package broker
 
 import (
 	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
+	internalbroker "github.com/pivotal-cf/ism/pkg/internal/broker"
+	osbapi "github.com/pmorie/go-open-service-broker-client/v2"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -81,5 +83,7 @@ type ReconcileBroker struct {
 // +kubebuilder:rbac:groups=osbapi.ism.io,resources=brokers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=osbapi.ism.io,resources=brokers/status,verbs=get;update;patch
 func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	return reconcile.Result{}, nil
+	reconciler := internalbroker.NewBrokerReconciler(r.Client, osbapi.NewClient)
+
+	return reconciler.Reconcile(request)
 }

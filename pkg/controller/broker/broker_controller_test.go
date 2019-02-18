@@ -53,4 +53,8 @@ var _ = Describe("Broker Controller", func() {
 			)))
 		})
 	})
+
+	Describe("Reconcile", func() {
+		//TODO: Add an integration test running against "kinda real" kube and mock http server for broker.
+	})
 })

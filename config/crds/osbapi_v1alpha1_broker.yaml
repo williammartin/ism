@@ -11,6 +11,8 @@ spec:
     kind: Broker
     plural: brokers
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       properties:
@@ -43,6 +45,9 @@ spec:
           - password
           type: object
         status:
+          properties:
+            state:
+              type: string
           type: object
   version: v1alpha1
 status:

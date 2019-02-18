@@ -6,6 +6,6 @@ metadata:
   name: broker-sample
 spec:
   name: "my-broker"
-  url: "http://my-broker.com"
+  url: "https://the-best-broker.cfapps.io"
   username: "admin"
   password: "password"

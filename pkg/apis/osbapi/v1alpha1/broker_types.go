@@ -28,8 +28,15 @@ type BrokerSpec struct {
 	Password string `json:"password"`
 }
 
+type BrokerState string
+
+const (
+	BrokerStateRegistered BrokerState = "registered"
+)
+
 // BrokerStatus defines the observed state of Broker
 type BrokerStatus struct {
+	State BrokerState `json:"state,omitempty"`
 }
 
 // +genclient
@@ -37,6 +44,7 @@ type BrokerStatus struct {
 
 // Broker is the Schema for the brokers API
 // +k8s:openapi-gen=true
+// +kubebuilder:subresource:status
 type Broker struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
