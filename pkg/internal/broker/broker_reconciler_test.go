@@ -26,6 +26,7 @@ var _ = Describe("BrokerReconciler", func() {
 		reconciler                 *BrokerReconciler
 		err                        error
 		brokerClientConfiguredWith *osbapi.ClientConfiguration
+		brokerName                 types.NamespacedName
 		expectedBroker             osbapiv1alpha1.Broker
 		kubeGetStub                = func(_ context.Context, name types.NamespacedName, result runtime.Object) error {
 			t, ok := result.(*osbapiv1alpha1.Broker)
@@ -44,6 +45,7 @@ var _ = Describe("BrokerReconciler", func() {
 			brokerClientConfiguredWith = config
 			return fakeBrokerClient, nil
 		}
+		brokerName = types.NamespacedName{Name: "broker-1", Namespace: "default"}
 
 		expectedBroker = osbapiv1alpha1.Broker{
 			ObjectMeta: metav1.ObjectMeta{
@@ -58,6 +60,23 @@ var _ = Describe("BrokerReconciler", func() {
 			},
 		}
 
+		fakeBrokerClient.GetCatalogReturns(&osbapi.CatalogResponse{
+			Services: []osbapi.Service{
+				{
+					ID:          "id-service-1",
+					Name:        "service-1",
+					Description: "some fancy description",
+					Plans:       []osbapi.Plan{{ID: "id-plan-1", Name: "plan-1"}},
+				},
+				{
+					ID:          "id-service-2",
+					Name:        "service-2",
+					Description: "poorly written description",
+					Plans:       []osbapi.Plan{{ID: "id-plan-2", Name: "plan-2"}, {ID: "id-plan-3", Name: "plan-3"}},
+				},
+			},
+		}, nil)
+
 		fakeKubeClient.StatusReturns(fakeKubeStatusWriter)
 	})
 
@@ -65,7 +84,7 @@ var _ = Describe("BrokerReconciler", func() {
 		reconciler = NewBrokerReconciler(fakeKubeClient, createBrokerClient)
 
 		_, err = reconciler.Reconcile(reconcile.Request{
-			NamespacedName: types.NamespacedName{Name: "broker-1", Namespace: "default"},
+			NamespacedName: brokerName,
 		})
 	})
 
@@ -103,6 +122,110 @@ var _ = Describe("BrokerReconciler", func() {
 		broker, ok := obj.(*osbapiv1alpha1.Broker)
 		Expect(ok).To(BeTrue())
 		Expect(broker.Status.State).To(Equal(osbapiv1alpha1.BrokerStateRegistered))
+	})
+
+	It("creates service resources using the kube client", func() {
+		_, obj := fakeKubeClient.CreateArgsForCall(0)
+		service, ok := obj.(*osbapiv1alpha1.BrokerService)
+		Expect(ok).To(BeTrue())
+		Expect(*service).To(Equal(osbapiv1alpha1.BrokerService{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "default",
+				Name:      "broker-1.id-service-1",
+			},
+			Spec: osbapiv1alpha1.BrokerServiceSpec{
+				Name:        "service-1",
+				Description: "some fancy description",
+				//TODO: BrokerID    string `json:"brokerID"`
+			},
+		}))
+
+		_, obj = fakeKubeClient.CreateArgsForCall(2)
+		service, ok = obj.(*osbapiv1alpha1.BrokerService)
+		Expect(ok).To(BeTrue())
+		Expect(*service).To(Equal(osbapiv1alpha1.BrokerService{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "default",
+				Name:      "broker-1.id-service-2",
+			},
+			Spec: osbapiv1alpha1.BrokerServiceSpec{
+				Name:        "service-2",
+				Description: "poorly written description",
+				//TODO: BrokerID    string `json:"brokerID"`
+			},
+		}))
+	})
+
+	It("creates plan resources using the kube client", func() {
+		_, obj := fakeKubeClient.CreateArgsForCall(1)
+		plan, ok := obj.(*osbapiv1alpha1.BrokerServicePlan)
+		Expect(ok).To(BeTrue())
+		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "default",
+				Name:      "broker-1.id-service-1.id-plan-1",
+			},
+			Spec: osbapiv1alpha1.BrokerServicePlanSpec{
+				Name: "plan-1",
+				//TODO: ServiceID    string `json:"serviceID"`
+			},
+		}))
+
+		_, obj = fakeKubeClient.CreateArgsForCall(3)
+		plan, ok = obj.(*osbapiv1alpha1.BrokerServicePlan)
+		Expect(ok).To(BeTrue())
+		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "default",
+				Name:      "broker-1.id-service-2.id-plan-2",
+			},
+			Spec: osbapiv1alpha1.BrokerServicePlanSpec{
+				Name: "plan-2",
+				//TODO: BrokerID    string `json:"brokerID"`
+			},
+		}))
+
+		_, obj = fakeKubeClient.CreateArgsForCall(4)
+		plan, ok = obj.(*osbapiv1alpha1.BrokerServicePlan)
+		Expect(ok).To(BeTrue())
+		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: "default",
+				Name:      "broker-1.id-service-2.id-plan-3",
+			},
+			Spec: osbapiv1alpha1.BrokerServicePlanSpec{
+				Name: "plan-3",
+				//TODO: BrokerID    string `json:"brokerID"`
+			},
+		}))
+	})
+
+	When("using different broker name and namespace", func() {
+		BeforeEach(func() {
+			brokerName = types.NamespacedName{Name: "other-broker", Namespace: "other"}
+			expectedBroker.ObjectMeta.Name = brokerName.Name
+			expectedBroker.ObjectMeta.Namespace = brokerName.Namespace
+		})
+
+		It("reflects that in the namespace and name of created service resources", func() {
+			_, obj := fakeKubeClient.CreateArgsForCall(0)
+			service, ok := obj.(*osbapiv1alpha1.BrokerService)
+			Expect(ok).To(BeTrue())
+			Expect(service.ObjectMeta).To(Equal(metav1.ObjectMeta{
+				Namespace: "other",
+				Name:      "other-broker.id-service-1",
+			}))
+		})
+
+		It("reflects that in the namespace and name of created service plan resources", func() {
+			_, obj := fakeKubeClient.CreateArgsForCall(1)
+			plan, ok := obj.(*osbapiv1alpha1.BrokerServicePlan)
+			Expect(ok).To(BeTrue())
+			Expect(plan.ObjectMeta).To(Equal(metav1.ObjectMeta{
+				Namespace: "other",
+				Name:      "other-broker.id-service-1.id-plan-1",
+			}))
+		})
 	})
 
 	When("the broker state reports it is already registered", func() {
@@ -163,6 +286,26 @@ var _ = Describe("BrokerReconciler", func() {
 
 		It("returns the error", func() {
 			Expect(err).To(MatchError("error-getting-catalog"))
+		})
+	})
+
+	When("creating service resource fails", func() {
+		BeforeEach(func() {
+			fakeKubeClient.CreateReturns(errors.New("error-creating-service"))
+		})
+
+		It("returns the error", func() {
+			Expect(err).To(MatchError("error-creating-service"))
+		})
+	})
+
+	When("creating service plan resource fails", func() {
+		BeforeEach(func() {
+			fakeKubeClient.CreateReturnsOnCall(1, errors.New("error-creating-plan"))
+		})
+
+		It("returns the error", func() {
+			Expect(err).To(MatchError("error-creating-plan"))
 		})
 	})
 })
