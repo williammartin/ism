@@ -19,11 +19,18 @@ var _ = Describe("KubeBrokerRepo", func() {
 		kubeClient client.Client
 		repo       KubeBrokerRepo
 
+		existingBroker *v1alpha1.Broker
+		resource       = types.NamespacedName{Name: "broker-1", Namespace: "default"}
+		objectMeta     = metav1.ObjectMeta{Name: resource.Name, Namespace: resource.Namespace}
+
+		cleanup = func() {
+			kubeClient.Delete(context.Background(), &v1alpha1.Broker{ObjectMeta: objectMeta})
+		}
+	)
+
+	BeforeEach(func() {
 		existingBroker = &v1alpha1.Broker{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "broker-1",
-				Namespace: "default",
-			},
+			ObjectMeta: objectMeta,
 			Spec: v1alpha1.BrokerSpec{
 				Name:     "broker-1",
 				URL:      "http://example.org/broker",
@@ -32,12 +39,6 @@ var _ = Describe("KubeBrokerRepo", func() {
 			},
 		}
 
-		cleanup = func() {
-			kubeClient.Delete(context.Background(), existingBroker)
-		}
-	)
-
-	BeforeEach(func() {
 		var err error
 
 		kubeClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
@@ -55,7 +56,7 @@ var _ = Describe("KubeBrokerRepo", func() {
 			})
 
 			It("returns broker when it finds the broker", func() {
-				broker, err := repo.Get(types.NamespacedName{Name: "broker-1", Namespace: "default"})
+				broker, err := repo.Get(resource)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(broker).To(Equal(existingBroker))
@@ -64,7 +65,39 @@ var _ = Describe("KubeBrokerRepo", func() {
 
 		When("the broker doesn't exist", func() {
 			It("returns an error", func() {
-				_, err := repo.Get(types.NamespacedName{Name: "broker-1", Namespace: "default"})
+				_, err := repo.Get(resource)
+
+				Expect(err).To(MatchError("brokers.osbapi.ism.io \"broker-1\" not found"))
+			})
+		})
+	})
+
+	Describe("UpdateStatus", func() {
+		When("the broker exists", func() {
+			BeforeEach(func() {
+				err := kubeClient.Create(context.Background(), existingBroker)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("updates status", func() {
+				newState := v1alpha1.BrokerStateRegistered
+				Expect(existingBroker.Status.State).NotTo(Equal(newState))
+
+				err := repo.UpdateState(existingBroker, newState)
+				Expect(err).NotTo(HaveOccurred())
+
+				updatedBroker, err := repo.Get(resource)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(updatedBroker.Status.State).To(Equal(newState))
+				Expect(existingBroker.Status.State).To(Equal(newState))
+			})
+		})
+
+		When("the broker doesn't exist", func() {
+			It("returns an error", func() {
+				newState := v1alpha1.BrokerStateRegistered
+				err := repo.UpdateState(existingBroker, newState)
 
 				Expect(err).To(MatchError("brokers.osbapi.ism.io \"broker-1\" not found"))
 			})

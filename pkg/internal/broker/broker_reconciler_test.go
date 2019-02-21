@@ -19,7 +19,6 @@ import (
 var _ = Describe("BrokerReconciler", func() {
 	var (
 		fakeKubeClient             *brokerfakes.FakeKubeClient
-		fakeKubeStatusWriter       *brokerfakes.FakeKubeStatusWriter
 		fakeBrokerClient           *brokerfakes.FakeBrokerClient
 		createBrokerClient         osbapi.CreateFunc
 		reconciler                 *BrokerReconciler
@@ -32,7 +31,6 @@ var _ = Describe("BrokerReconciler", func() {
 
 	BeforeEach(func() {
 		fakeKubeClient = &brokerfakes.FakeKubeClient{}
-		fakeKubeStatusWriter = &brokerfakes.FakeKubeStatusWriter{}
 		fakeBrokerClient = &brokerfakes.FakeBrokerClient{}
 		fakeKubeBrokerRepo = &repositoriesfakes.FakeKubeBrokerRepo{}
 
@@ -72,8 +70,6 @@ var _ = Describe("BrokerReconciler", func() {
 				},
 			},
 		}, nil)
-
-		fakeKubeClient.StatusReturns(fakeKubeStatusWriter)
 	})
 
 	JustBeforeEach(func() {
@@ -113,11 +109,10 @@ var _ = Describe("BrokerReconciler", func() {
 	})
 
 	It("updates the broker status to registered", func() {
-		Expect(fakeKubeStatusWriter.UpdateCallCount()).To(Equal(1))
-		_, obj := fakeKubeStatusWriter.UpdateArgsForCall(0)
-		broker, ok := obj.(*osbapiv1alpha1.Broker)
-		Expect(ok).To(BeTrue())
-		Expect(broker.Status.State).To(Equal(osbapiv1alpha1.BrokerStateRegistered))
+		Expect(fakeKubeBrokerRepo.UpdateStateCallCount()).To(Equal(1))
+		broker, newState := fakeKubeBrokerRepo.UpdateStateArgsForCall(0)
+		Expect(newState).To(Equal(osbapiv1alpha1.BrokerStateRegistered))
+		Expect(*broker).To(Equal(expectedBroker))
 	})
 
 	It("creates service resources using the kube client", func() {
@@ -234,7 +229,7 @@ var _ = Describe("BrokerReconciler", func() {
 		})
 
 		It("doesn't update the status", func() {
-			Expect(fakeKubeStatusWriter.UpdateCallCount()).To(Equal(0))
+			Expect(fakeKubeBrokerRepo.UpdateStateCallCount()).To(Equal(0))
 		})
 
 		It("still reconciles successfully ", func() {
@@ -244,7 +239,7 @@ var _ = Describe("BrokerReconciler", func() {
 
 	When("updating the broker status errors", func() {
 		BeforeEach(func() {
-			fakeKubeStatusWriter.UpdateReturns(errors.New("error-updating-status"))
+			fakeKubeBrokerRepo.UpdateStateReturns(errors.New("error-updating-status"))
 		})
 
 		//TODO: test the state of service / plan creation here.

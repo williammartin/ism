@@ -22,14 +22,6 @@ type KubeClient interface {
 
 //TODO Shall we leave this here or move it to the test?
 
-//go:generate counterfeiter . KubeStatusWriter
-
-type KubeStatusWriter interface {
-	client.StatusWriter
-}
-
-//TODO Shall we leave this here or move it to the test?
-
 //go:generate counterfeiter . BrokerClient
 
 type BrokerClient interface {
@@ -116,9 +108,7 @@ func (r *BrokerReconciler) Reconcile(request reconcile.Request) (reconcile.Resul
 	}
 
 	//5. Done. Report success in broker resource
-	broker.Status.State = osbapiv1alpha1.BrokerStateRegistered
-
-	if err := r.kubeClient.Status().Update(ctx, broker); err != nil {
+	if err := r.kubeBrokerRepo.UpdateState(broker, osbapiv1alpha1.BrokerStateRegistered); err != nil {
 		return reconcile.Result{}, err
 	}
 
