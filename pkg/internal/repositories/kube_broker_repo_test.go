@@ -2,15 +2,12 @@ package repositories_test
 
 import (
 	"context"
-	"fmt"
-	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
@@ -43,7 +40,7 @@ var _ = Describe("KubeBrokerRepo", func() {
 	BeforeEach(func() {
 		var err error
 
-		kubeClient, err = buildKubeClient()
+		kubeClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 		Expect(err).NotTo(HaveOccurred())
 		repo = NewKubeBrokerRepo(kubeClient)
 
@@ -74,19 +71,3 @@ var _ = Describe("KubeBrokerRepo", func() {
 		})
 	})
 })
-
-// FIXME: consider de-duplicating with helper in acceptance tests
-func buildKubeClient() (client.Client, error) {
-	home := os.Getenv("HOME")
-	kubeconfigFilepath := fmt.Sprintf("%s/.kube/config", home)
-	clientConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfigFilepath)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := v1alpha1.AddToScheme(scheme.Scheme); err != nil {
-		return nil, err
-	}
-
-	return client.New(clientConfig, client.Options{Scheme: scheme.Scheme})
-}
