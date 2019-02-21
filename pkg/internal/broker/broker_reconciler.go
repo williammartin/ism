@@ -8,6 +8,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	"github.com/pivotal-cf/ism/pkg/internal/repositories"
 )
 
 var ctx = context.TODO()
@@ -36,20 +38,26 @@ type BrokerClient interface {
 
 type BrokerReconciler struct {
 	kubeClient         KubeClient
+	kubeBrokerRepo     repositories.KubeBrokerRepo
 	createBrokerClient osbapi.CreateFunc
 }
 
-func NewBrokerReconciler(kubeClient KubeClient, createBrokerClient osbapi.CreateFunc) *BrokerReconciler {
+func NewBrokerReconciler(
+	kubeClient KubeClient,
+	createBrokerClient osbapi.CreateFunc,
+	kubeBrokerRepo repositories.KubeBrokerRepo,
+) *BrokerReconciler {
 	return &BrokerReconciler{
 		kubeClient:         kubeClient,
 		createBrokerClient: createBrokerClient,
+		kubeBrokerRepo:     kubeBrokerRepo, // repositories.NewKubeBrokerRepo(kubeClient),
 	}
 }
 
 func (r *BrokerReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	//1. Fetch the broker resource
-	broker := &osbapiv1alpha1.Broker{}
-	if err := r.kubeClient.Get(ctx, request.NamespacedName, broker); err != nil {
+	broker, err := r.kubeBrokerRepo.Get(request.NamespacedName)
+	if err != nil {
 		return reconcile.Result{}, err
 	}
 

@@ -1,18 +1,17 @@
 package broker_test
 
 import (
-	"context"
 	"errors"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	osbapiv1alpha1 "github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
 	. "github.com/pivotal-cf/ism/pkg/internal/broker"
 	"github.com/pivotal-cf/ism/pkg/internal/broker/brokerfakes"
+	"github.com/pivotal-cf/ism/pkg/internal/repositories/repositoriesfakes"
 	osbapi "github.com/pmorie/go-open-service-broker-client/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -28,19 +27,15 @@ var _ = Describe("BrokerReconciler", func() {
 		brokerClientConfiguredWith *osbapi.ClientConfiguration
 		brokerName                 types.NamespacedName
 		expectedBroker             osbapiv1alpha1.Broker
-		kubeGetStub                = func(_ context.Context, name types.NamespacedName, result runtime.Object) error {
-			t, ok := result.(*osbapiv1alpha1.Broker)
-			Expect(ok).To(BeTrue())
-			*t = expectedBroker
-			return nil
-		}
+		fakeKubeBrokerRepo         *repositoriesfakes.FakeKubeBrokerRepo
 	)
 
 	BeforeEach(func() {
 		fakeKubeClient = &brokerfakes.FakeKubeClient{}
 		fakeKubeStatusWriter = &brokerfakes.FakeKubeStatusWriter{}
 		fakeBrokerClient = &brokerfakes.FakeBrokerClient{}
-		fakeKubeClient.GetCalls(kubeGetStub)
+		fakeKubeBrokerRepo = &repositoriesfakes.FakeKubeBrokerRepo{}
+
 		createBrokerClient = func(config *osbapi.ClientConfiguration) (osbapi.Client, error) {
 			brokerClientConfiguredWith = config
 			return fakeBrokerClient, nil
@@ -59,6 +54,7 @@ var _ = Describe("BrokerReconciler", func() {
 				Password: "broker-password",
 			},
 		}
+		fakeKubeBrokerRepo.GetReturns(&expectedBroker, nil)
 
 		fakeBrokerClient.GetCatalogReturns(&osbapi.CatalogResponse{
 			Services: []osbapi.Service{
@@ -81,18 +77,18 @@ var _ = Describe("BrokerReconciler", func() {
 	})
 
 	JustBeforeEach(func() {
-		reconciler = NewBrokerReconciler(fakeKubeClient, createBrokerClient)
+		reconciler = NewBrokerReconciler(fakeKubeClient, createBrokerClient, fakeKubeBrokerRepo)
 
 		_, err = reconciler.Reconcile(reconcile.Request{
 			NamespacedName: brokerName,
 		})
 	})
 
-	It("fetches the broker resource using the kube client", func() {
+	It("fetches the broker resource using the kube broker repo", func() {
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(fakeKubeClient.GetCallCount()).To(Equal(1))
-		_, namespacedName, _ := fakeKubeClient.GetArgsForCall(0)
+		Expect(fakeKubeBrokerRepo.GetCallCount()).To(Equal(1))
+		namespacedName := fakeKubeBrokerRepo.GetArgsForCall(0)
 		Expect(namespacedName).To(Equal(types.NamespacedName{Name: "broker-1", Namespace: "default"}))
 	})
 
@@ -257,9 +253,9 @@ var _ = Describe("BrokerReconciler", func() {
 		})
 	})
 
-	When("fetching the broker resource using the kube client fails", func() {
+	When("fetching the broker resource using the kube broker repo fails", func() {
 		BeforeEach(func() {
-			fakeKubeClient.GetReturns(errors.New("error-getting-broker"))
+			fakeKubeBrokerRepo.GetReturns(nil, errors.New("error-getting-broker"))
 		})
 
 		It("returns the error", func() {
