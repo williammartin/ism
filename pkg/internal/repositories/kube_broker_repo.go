@@ -12,6 +12,7 @@ var ctx = context.TODO()
 
 //go:generate counterfeiter . KubeBrokerRepo
 
+//TODO: move to internal reconciler
 type KubeBrokerRepo interface {
 	Get(resource types.NamespacedName) (*v1alpha1.Broker, error)
 	UpdateState(broker *v1alpha1.Broker, newState v1alpha1.BrokerState) error

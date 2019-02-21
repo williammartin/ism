@@ -31,6 +31,7 @@ type BrokerClient interface {
 type BrokerReconciler struct {
 	kubeClient         KubeClient
 	kubeBrokerRepo     repositories.KubeBrokerRepo
+	kubeServiceRepo    repositories.KubeServiceRepo
 	createBrokerClient osbapi.CreateFunc
 }
 
@@ -38,11 +39,13 @@ func NewBrokerReconciler(
 	kubeClient KubeClient,
 	createBrokerClient osbapi.CreateFunc,
 	kubeBrokerRepo repositories.KubeBrokerRepo,
+	kubeServiceRepo repositories.KubeServiceRepo,
 ) *BrokerReconciler {
 	return &BrokerReconciler{
 		kubeClient:         kubeClient,
 		createBrokerClient: createBrokerClient,
-		kubeBrokerRepo:     kubeBrokerRepo, // repositories.NewKubeBrokerRepo(kubeClient),
+		kubeBrokerRepo:     kubeBrokerRepo,
+		kubeServiceRepo:    kubeServiceRepo,
 	}
 }
 
@@ -74,18 +77,7 @@ func (r *BrokerReconciler) Reconcile(request reconcile.Request) (reconcile.Resul
 	//4. For each service
 	//4.1 Create a new service resource
 	for _, catalogService := range catalog.Services {
-		service := &osbapiv1alpha1.BrokerService{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: broker.ObjectMeta.Namespace,
-				Name:      broker.ObjectMeta.Name + "." + catalogService.ID,
-			},
-			Spec: osbapiv1alpha1.BrokerServiceSpec{
-				Name:        catalogService.Name,
-				Description: catalogService.Description,
-			},
-		}
-
-		if err := r.kubeClient.Create(ctx, service); err != nil {
+		if err := r.kubeServiceRepo.Create(broker, catalogService); err != nil {
 			return reconcile.Result{}, err
 		}
 

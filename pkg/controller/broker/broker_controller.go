@@ -85,7 +85,13 @@ type ReconcileBroker struct {
 // +kubebuilder:rbac:groups=osbapi.ism.io,resources=brokers/status,verbs=get;update;patch
 func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	kubeBrokerRepo := repositories.NewKubeBrokerRepo(r.Client)
-	reconciler := internalbroker.NewBrokerReconciler(r.Client, osbapi.NewClient, kubeBrokerRepo)
+	kubeServiceRepo := repositories.NewKubeServiceRepo(r.Client)
+	reconciler := internalbroker.NewBrokerReconciler(
+		r.Client,
+		osbapi.NewClient,
+		kubeBrokerRepo,
+		kubeServiceRepo,
+	)
 
 	return reconciler.Reconcile(request)
 }

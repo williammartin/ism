@@ -27,12 +27,27 @@ var _ = Describe("BrokerReconciler", func() {
 		brokerName                 types.NamespacedName
 		expectedBroker             osbapiv1alpha1.Broker
 		fakeKubeBrokerRepo         *repositoriesfakes.FakeKubeBrokerRepo
+		fakeKubeServiceRepo        *repositoriesfakes.FakeKubeServiceRepo
+
+		catalogServiceOne = osbapi.Service{
+			ID:          "id-service-1",
+			Name:        "service-1",
+			Description: "some fancy description",
+			Plans:       []osbapi.Plan{{ID: "id-plan-1", Name: "plan-1"}},
+		}
+		catalogServiceTwo = osbapi.Service{
+			ID:          "id-service-2",
+			Name:        "service-2",
+			Description: "poorly written description",
+			Plans:       []osbapi.Plan{{ID: "id-plan-2", Name: "plan-2"}, {ID: "id-plan-3", Name: "plan-3"}},
+		}
 	)
 
 	BeforeEach(func() {
 		fakeKubeClient = &brokerfakes.FakeKubeClient{}
 		fakeBrokerClient = &brokerfakes.FakeBrokerClient{}
 		fakeKubeBrokerRepo = &repositoriesfakes.FakeKubeBrokerRepo{}
+		fakeKubeServiceRepo = &repositoriesfakes.FakeKubeServiceRepo{}
 
 		createBrokerClient = func(config *osbapi.ClientConfiguration) (osbapi.Client, error) {
 			brokerClientConfiguredWith = config
@@ -56,24 +71,19 @@ var _ = Describe("BrokerReconciler", func() {
 
 		fakeBrokerClient.GetCatalogReturns(&osbapi.CatalogResponse{
 			Services: []osbapi.Service{
-				{
-					ID:          "id-service-1",
-					Name:        "service-1",
-					Description: "some fancy description",
-					Plans:       []osbapi.Plan{{ID: "id-plan-1", Name: "plan-1"}},
-				},
-				{
-					ID:          "id-service-2",
-					Name:        "service-2",
-					Description: "poorly written description",
-					Plans:       []osbapi.Plan{{ID: "id-plan-2", Name: "plan-2"}, {ID: "id-plan-3", Name: "plan-3"}},
-				},
+				catalogServiceOne,
+				catalogServiceTwo,
 			},
 		}, nil)
 	})
 
 	JustBeforeEach(func() {
-		reconciler = NewBrokerReconciler(fakeKubeClient, createBrokerClient, fakeKubeBrokerRepo)
+		reconciler = NewBrokerReconciler(
+			fakeKubeClient,
+			createBrokerClient,
+			fakeKubeBrokerRepo,
+			fakeKubeServiceRepo,
+		)
 
 		_, err = reconciler.Reconcile(reconcile.Request{
 			NamespacedName: brokerName,
@@ -115,40 +125,18 @@ var _ = Describe("BrokerReconciler", func() {
 		Expect(*broker).To(Equal(expectedBroker))
 	})
 
-	It("creates service resources using the kube client", func() {
-		_, obj := fakeKubeClient.CreateArgsForCall(0)
-		service, ok := obj.(*osbapiv1alpha1.BrokerService)
-		Expect(ok).To(BeTrue())
-		Expect(*service).To(Equal(osbapiv1alpha1.BrokerService{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: "default",
-				Name:      "broker-1.id-service-1",
-			},
-			Spec: osbapiv1alpha1.BrokerServiceSpec{
-				Name:        "service-1",
-				Description: "some fancy description",
-				//TODO: BrokerID    string `json:"brokerID"`
-			},
-		}))
+	It("creates service resources using the kube service repo", func() {
+		broker, catalogService := fakeKubeServiceRepo.CreateArgsForCall(0)
+		Expect(*broker).To(Equal(expectedBroker))
+		Expect(catalogService).To(Equal(catalogServiceOne))
 
-		_, obj = fakeKubeClient.CreateArgsForCall(2)
-		service, ok = obj.(*osbapiv1alpha1.BrokerService)
-		Expect(ok).To(BeTrue())
-		Expect(*service).To(Equal(osbapiv1alpha1.BrokerService{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: "default",
-				Name:      "broker-1.id-service-2",
-			},
-			Spec: osbapiv1alpha1.BrokerServiceSpec{
-				Name:        "service-2",
-				Description: "poorly written description",
-				//TODO: BrokerID    string `json:"brokerID"`
-			},
-		}))
+		broker, catalogService = fakeKubeServiceRepo.CreateArgsForCall(1)
+		Expect(*broker).To(Equal(expectedBroker))
+		Expect(catalogService).To(Equal(catalogServiceTwo))
 	})
 
 	It("creates plan resources using the kube client", func() {
-		_, obj := fakeKubeClient.CreateArgsForCall(1)
+		_, obj := fakeKubeClient.CreateArgsForCall(0)
 		plan, ok := obj.(*osbapiv1alpha1.BrokerServicePlan)
 		Expect(ok).To(BeTrue())
 		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
@@ -162,7 +150,7 @@ var _ = Describe("BrokerReconciler", func() {
 			},
 		}))
 
-		_, obj = fakeKubeClient.CreateArgsForCall(3)
+		_, obj = fakeKubeClient.CreateArgsForCall(1)
 		plan, ok = obj.(*osbapiv1alpha1.BrokerServicePlan)
 		Expect(ok).To(BeTrue())
 		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
@@ -176,7 +164,7 @@ var _ = Describe("BrokerReconciler", func() {
 			},
 		}))
 
-		_, obj = fakeKubeClient.CreateArgsForCall(4)
+		_, obj = fakeKubeClient.CreateArgsForCall(2)
 		plan, ok = obj.(*osbapiv1alpha1.BrokerServicePlan)
 		Expect(ok).To(BeTrue())
 		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
@@ -189,34 +177,6 @@ var _ = Describe("BrokerReconciler", func() {
 				//TODO: BrokerID    string `json:"brokerID"`
 			},
 		}))
-	})
-
-	When("using different broker name and namespace", func() {
-		BeforeEach(func() {
-			brokerName = types.NamespacedName{Name: "other-broker", Namespace: "other"}
-			expectedBroker.ObjectMeta.Name = brokerName.Name
-			expectedBroker.ObjectMeta.Namespace = brokerName.Namespace
-		})
-
-		It("reflects that in the namespace and name of created service resources", func() {
-			_, obj := fakeKubeClient.CreateArgsForCall(0)
-			service, ok := obj.(*osbapiv1alpha1.BrokerService)
-			Expect(ok).To(BeTrue())
-			Expect(service.ObjectMeta).To(Equal(metav1.ObjectMeta{
-				Namespace: "other",
-				Name:      "other-broker.id-service-1",
-			}))
-		})
-
-		It("reflects that in the namespace and name of created service plan resources", func() {
-			_, obj := fakeKubeClient.CreateArgsForCall(1)
-			plan, ok := obj.(*osbapiv1alpha1.BrokerServicePlan)
-			Expect(ok).To(BeTrue())
-			Expect(plan.ObjectMeta).To(Equal(metav1.ObjectMeta{
-				Namespace: "other",
-				Name:      "other-broker.id-service-1.id-plan-1",
-			}))
-		})
 	})
 
 	When("the broker state reports it is already registered", func() {
@@ -282,7 +242,7 @@ var _ = Describe("BrokerReconciler", func() {
 
 	When("creating service resource fails", func() {
 		BeforeEach(func() {
-			fakeKubeClient.CreateReturns(errors.New("error-creating-service"))
+			fakeKubeServiceRepo.CreateReturns(errors.New("error-creating-service"))
 		})
 
 		It("returns the error", func() {
