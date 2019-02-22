@@ -8,8 +8,6 @@ import (
 	osbapi "github.com/pmorie/go-open-service-broker-client/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
 	. "github.com/pivotal-cf/ism/pkg/internal/repositories"
@@ -17,81 +15,74 @@ import (
 
 var _ = Describe("KubeServiceRepo", func() {
 	var (
-		kubeClient client.Client
-		repo       KubeServiceRepo
-
-		existingBroker *v1alpha1.Broker
-		brokerResource = types.NamespacedName{Name: "broker-1", Namespace: "default"}
-		brokerMeta     = metav1.ObjectMeta{Name: brokerResource.Name, Namespace: brokerResource.Namespace}
-
-		serviceMeta = metav1.ObjectMeta{Name: "broker-1.service-id-1", Namespace: "default"}
-
-		cleanup = func() {
-			kubeClient.Delete(context.Background(), &v1alpha1.Broker{ObjectMeta: brokerMeta})
-		}
+		repo          KubeServiceRepo
+		broker        *v1alpha1.Broker
+		brokerService *v1alpha1.BrokerService
 	)
 
 	BeforeEach(func() {
-		existingBroker = &v1alpha1.Broker{
-			ObjectMeta: brokerMeta,
+		broker = &v1alpha1.Broker{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "broker-1",
+				Namespace: "default",
+			},
 		}
 
-		var err error
+		brokerService = &v1alpha1.BrokerService{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "broker-1.service-id-1",
+				Namespace: "default",
+			},
+		}
 
-		kubeClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
-		Expect(err).NotTo(HaveOccurred())
 		repo = NewKubeServiceRepo(kubeClient)
+	})
 
-		cleanup()
+	AfterEach(func() {
+		kubeClient.Delete(context.Background(), broker)
 	})
 
 	Describe("Create", func() {
-
-		When("broker exists", func() {
-			var (
-				service *v1alpha1.BrokerService
-			)
-
+		When("the broker exists", func() {
 			BeforeEach(func() {
-				err := kubeClient.Create(context.Background(), existingBroker)
+				err := kubeClient.Create(context.Background(), broker)
 				Expect(err).NotTo(HaveOccurred())
 
-				err = repo.Create(existingBroker, osbapi.Service{
+				err = repo.Create(broker, osbapi.Service{
 					ID:          "service-id-1",
 					Name:        "service-one",
 					Description: "cool description",
 				})
 				Expect(err).NotTo(HaveOccurred())
 
-				service = &v1alpha1.BrokerService{}
-				err = kubeClient.Get(context.Background(), types.NamespacedName{Name: "broker-1.service-id-1", Namespace: "default"}, service)
+				err = kubeClient.Get(context.Background(), types.NamespacedName{Name: "broker-1.service-id-1", Namespace: "default"}, brokerService)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			AfterEach(func() {
-				kubeClient.Delete(context.Background(), &v1alpha1.BrokerService{ObjectMeta: serviceMeta})
+				kubeClient.Delete(context.Background(), brokerService)
 			})
 
-			It("creates the service with correct spec", func() {
-				Expect(service.Spec).To(Equal(v1alpha1.BrokerServiceSpec{
+			It("creates the service with the correct spec", func() {
+				Expect(brokerService.Spec).To(Equal(v1alpha1.BrokerServiceSpec{
 					Name:        "service-one",
 					Description: "cool description",
 					BrokerID:    "broker-1",
 				}))
 			})
 
-			It("generates correct name and namespace", func() {
-				Expect(service.ObjectMeta.Name).To(Equal("broker-1.service-id-1"))
-				Expect(service.ObjectMeta.Namespace).To(Equal("default"))
+			It("generates the correct name and namespace", func() {
+				Expect(brokerService.ObjectMeta.Name).To(Equal("broker-1.service-id-1"))
+				Expect(brokerService.ObjectMeta.Namespace).To(Equal("default"))
 			})
 
-			It("sets ownership of that service to the broker resource", func() {
-				Expect(service.ObjectMeta.OwnerReferences).To(HaveLen(1))
-				Expect(service.ObjectMeta.OwnerReferences[0].UID).To(Equal(existingBroker.ObjectMeta.UID))
+			It("sets the owner reference of the service to the broker", func() {
+				Expect(brokerService.ObjectMeta.OwnerReferences).To(HaveLen(1))
+				Expect(brokerService.ObjectMeta.OwnerReferences[0].UID).To(Equal(broker.ObjectMeta.UID))
 			})
 		})
 
-		When("broker doesn't exist", func() {
+		When("the broker doesn't exist", func() {
 			It("returns an error", func() {
 				invalidBroker := &v1alpha1.Broker{
 					ObjectMeta: metav1.ObjectMeta{

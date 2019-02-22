@@ -7,8 +7,6 @@ import (
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
 	. "github.com/pivotal-cf/ism/pkg/internal/repositories"
@@ -16,21 +14,19 @@ import (
 
 var _ = Describe("KubeBrokerRepo", func() {
 	var (
-		kubeClient client.Client
-		repo       KubeBrokerRepo
-
+		repo           KubeBrokerRepo
 		existingBroker *v1alpha1.Broker
-		resource       = types.NamespacedName{Name: "broker-1", Namespace: "default"}
-		objectMeta     = metav1.ObjectMeta{Name: resource.Name, Namespace: resource.Namespace}
-
-		cleanup = func() {
-			kubeClient.Delete(context.Background(), &v1alpha1.Broker{ObjectMeta: objectMeta})
-		}
+		resource       types.NamespacedName
 	)
 
 	BeforeEach(func() {
+		resource = types.NamespacedName{Name: "broker-1", Namespace: "default"}
+
 		existingBroker = &v1alpha1.Broker{
-			ObjectMeta: objectMeta,
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      resource.Name,
+				Namespace: resource.Namespace,
+			},
 			Spec: v1alpha1.BrokerSpec{
 				Name:     "broker-1",
 				URL:      "http://example.org/broker",
@@ -39,13 +35,11 @@ var _ = Describe("KubeBrokerRepo", func() {
 			},
 		}
 
-		var err error
-
-		kubeClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
-		Expect(err).NotTo(HaveOccurred())
 		repo = NewKubeBrokerRepo(kubeClient)
+	})
 
-		cleanup()
+	AfterEach(func() {
+		kubeClient.Delete(context.Background(), existingBroker)
 	})
 
 	Describe("Get", func() {

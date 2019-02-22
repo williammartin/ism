@@ -7,14 +7,14 @@ import (
 
 	"github.com/pivotal-cf/ism/pkg/apis"
 	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var cfg *rest.Config
+var kubeClient client.Client
 
 func TestRepositories(t *testing.T) {
 	var testEnv *envtest.Environment
@@ -28,8 +28,10 @@ func TestRepositories(t *testing.T) {
 		}
 		apis.AddToScheme(scheme.Scheme)
 
-		var err error
-		cfg, err = testEnv.Start()
+		cfg, err := testEnv.Start()
+		Expect(err).NotTo(HaveOccurred())
+
+		kubeClient, err = client.New(cfg, client.Options{Scheme: scheme.Scheme})
 		Expect(err).NotTo(HaveOccurred())
 	})
 
