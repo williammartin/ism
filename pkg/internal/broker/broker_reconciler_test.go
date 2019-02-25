@@ -17,16 +17,18 @@ import (
 
 var _ = Describe("BrokerReconciler", func() {
 	var (
-		err                        error
-		fakeBrokerClient           *brokerfakes.FakeBrokerClient
+		reconciler *BrokerReconciler
+		err        error
+
 		createBrokerClient         osbapi.CreateFunc
-		reconciler                 *BrokerReconciler
 		brokerClientConfiguredWith *osbapi.ClientConfiguration
-		brokerName                 types.NamespacedName
-		expectedBroker             v1alpha1.Broker
-		fakeKubeBrokerRepo         *brokerfakes.FakeKubeBrokerRepo
-		fakeKubeServiceRepo        *brokerfakes.FakeKubeServiceRepo
-		fakeKubePlanRepo           *brokerfakes.FakeKubePlanRepo
+
+		returnedBroker v1alpha1.Broker
+
+		fakeBrokerClient    *brokerfakes.FakeBrokerClient
+		fakeKubeBrokerRepo  *brokerfakes.FakeKubeBrokerRepo
+		fakeKubeServiceRepo *brokerfakes.FakeKubeServiceRepo
+		fakeKubePlanRepo    *brokerfakes.FakeKubePlanRepo
 
 		catalogPlanOne   = osbapi.Plan{ID: "id-plan-1", Name: "plan-1"}
 		catalogPlanTwo   = osbapi.Plan{ID: "id-plan-2", Name: "plan-2"}
@@ -56,9 +58,8 @@ var _ = Describe("BrokerReconciler", func() {
 			brokerClientConfiguredWith = config
 			return fakeBrokerClient, nil
 		}
-		brokerName = types.NamespacedName{Name: "broker-1", Namespace: "default"}
 
-		expectedBroker = v1alpha1.Broker{
+		returnedBroker = v1alpha1.Broker{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "broker-1",
 				Namespace: "default",
@@ -70,7 +71,7 @@ var _ = Describe("BrokerReconciler", func() {
 				Password: "broker-password",
 			},
 		}
-		fakeKubeBrokerRepo.GetReturns(&expectedBroker, nil)
+		fakeKubeBrokerRepo.GetReturns(&returnedBroker, nil)
 		fakeKubeServiceRepo.CreateReturnsOnCall(0, catalogServiceToBrokerService(&catalogServiceOne), nil)
 		fakeKubeServiceRepo.CreateReturnsOnCall(1, catalogServiceToBrokerService(&catalogServiceTwo), nil)
 
@@ -91,7 +92,7 @@ var _ = Describe("BrokerReconciler", func() {
 		)
 
 		_, err = reconciler.Reconcile(reconcile.Request{
-			NamespacedName: brokerName,
+			NamespacedName: types.NamespacedName{Name: "broker-1", Namespace: "default"},
 		})
 	})
 
@@ -127,16 +128,16 @@ var _ = Describe("BrokerReconciler", func() {
 		Expect(fakeKubeBrokerRepo.UpdateStateCallCount()).To(Equal(1))
 		broker, newState := fakeKubeBrokerRepo.UpdateStateArgsForCall(0)
 		Expect(newState).To(Equal(v1alpha1.BrokerStateRegistered))
-		Expect(*broker).To(Equal(expectedBroker))
+		Expect(*broker).To(Equal(returnedBroker))
 	})
 
 	It("creates service resources using the kube service repo", func() {
 		broker, catalogService := fakeKubeServiceRepo.CreateArgsForCall(0)
-		Expect(*broker).To(Equal(expectedBroker))
+		Expect(*broker).To(Equal(returnedBroker))
 		Expect(catalogService).To(Equal(catalogServiceOne))
 
 		broker, catalogService = fakeKubeServiceRepo.CreateArgsForCall(1)
-		Expect(*broker).To(Equal(expectedBroker))
+		Expect(*broker).To(Equal(returnedBroker))
 		Expect(catalogService).To(Equal(catalogServiceTwo))
 	})
 
@@ -156,7 +157,7 @@ var _ = Describe("BrokerReconciler", func() {
 
 	When("the broker state reports it is already registered", func() {
 		BeforeEach(func() {
-			expectedBroker.Status.State = v1alpha1.BrokerStateRegistered
+			returnedBroker.Status.State = v1alpha1.BrokerStateRegistered
 		})
 
 		It("doesn't call the broker", func() {
