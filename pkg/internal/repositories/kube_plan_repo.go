@@ -12,19 +12,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-type kubePlanRepo struct {
+type KubePlanRepo struct {
 	client client.Client
 	scheme *runtime.Scheme
 }
 
-func NewKubePlanRepo(client client.Client) *kubePlanRepo {
-	return &kubePlanRepo{
+func NewKubePlanRepo(client client.Client) *KubePlanRepo {
+	return &KubePlanRepo{
 		client: client,
 		scheme: scheme.Scheme,
 	}
 }
 
-func (repo *kubePlanRepo) Create(service *v1alpha1.BrokerService, catalogPlan osbapi.Plan) error {
+func (repo *KubePlanRepo) Create(service *v1alpha1.BrokerService, catalogPlan osbapi.Plan) error {
 	plan := &v1alpha1.BrokerServicePlan{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      service.ObjectMeta.Name + "." + catalogPlan.ID,

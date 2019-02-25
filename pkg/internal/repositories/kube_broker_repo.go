@@ -10,17 +10,17 @@ import (
 
 var ctx = context.TODO()
 
-type kubeBrokerRepo struct {
+type KubeBrokerRepo struct {
 	client client.Client
 }
 
-func NewKubeBrokerRepo(client client.Client) *kubeBrokerRepo {
-	return &kubeBrokerRepo{
+func NewKubeBrokerRepo(client client.Client) *KubeBrokerRepo {
+	return &KubeBrokerRepo{
 		client: client,
 	}
 }
 
-func (repo *kubeBrokerRepo) Get(resource types.NamespacedName) (*v1alpha1.Broker, error) {
+func (repo *KubeBrokerRepo) Get(resource types.NamespacedName) (*v1alpha1.Broker, error) {
 	broker := &v1alpha1.Broker{}
 
 	err := repo.client.Get(ctx, resource, broker)
@@ -31,7 +31,7 @@ func (repo *kubeBrokerRepo) Get(resource types.NamespacedName) (*v1alpha1.Broker
 	return broker, nil
 }
 
-func (repo *kubeBrokerRepo) UpdateState(broker *v1alpha1.Broker, newState v1alpha1.BrokerState) error {
+func (repo *KubeBrokerRepo) UpdateState(broker *v1alpha1.Broker, newState v1alpha1.BrokerState) error {
 	broker.Status.State = newState
 
 	return repo.client.Status().Update(ctx, broker)

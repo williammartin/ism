@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("KubeBrokerRepo", func() {
 	var (
-		repo           KubeBrokerRepo
+		repo           *KubeBrokerRepo
 		existingBroker *v1alpha1.Broker
 		resource       types.NamespacedName
 	)

@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("KubeServiceRepo", func() {
 	var (
-		repo            KubeServiceRepo
+		repo            *KubeServiceRepo
 		broker          *v1alpha1.Broker
 		brokerService   *v1alpha1.BrokerService
 		returnedService *v1alpha1.BrokerService

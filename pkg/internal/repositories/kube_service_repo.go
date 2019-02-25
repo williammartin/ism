@@ -12,19 +12,19 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-type kubeServiceRepo struct {
+type KubeServiceRepo struct {
 	client client.Client
 	scheme *runtime.Scheme
 }
 
-func NewKubeServiceRepo(client client.Client) *kubeServiceRepo {
-	return &kubeServiceRepo{
+func NewKubeServiceRepo(client client.Client) *KubeServiceRepo {
+	return &KubeServiceRepo{
 		client: client,
 		scheme: scheme.Scheme,
 	}
 }
 
-func (repo *kubeServiceRepo) Create(broker *v1alpha1.Broker, catalogService osbapi.Service) (*v1alpha1.BrokerService, error) {
+func (repo *KubeServiceRepo) Create(broker *v1alpha1.Broker, catalogService osbapi.Service) (*v1alpha1.BrokerService, error) {
 	service := &v1alpha1.BrokerService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      broker.Name + "." + catalogService.ID,
