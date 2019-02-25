@@ -1,4 +1,4 @@
-package broker_test
+package reconcilers_test
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestBroker(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Broker Suite")
+	RunSpecs(t, "Reconcilers Suite")
 }

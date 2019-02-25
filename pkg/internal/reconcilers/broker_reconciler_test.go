@@ -1,4 +1,4 @@
-package broker_test
+package reconcilers_test
 
 import (
 	"errors"
@@ -9,8 +9,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	v1alpha1 "github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
-	. "github.com/pivotal-cf/ism/pkg/internal/broker"
-	"github.com/pivotal-cf/ism/pkg/internal/broker/brokerfakes"
+	. "github.com/pivotal-cf/ism/pkg/internal/reconcilers"
+	"github.com/pivotal-cf/ism/pkg/internal/reconcilers/reconcilersfakes"
 	osbapi "github.com/pmorie/go-open-service-broker-client/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -25,10 +25,10 @@ var _ = Describe("BrokerReconciler", func() {
 
 		returnedBroker v1alpha1.Broker
 
-		fakeBrokerClient    *brokerfakes.FakeBrokerClient
-		fakeKubeBrokerRepo  *brokerfakes.FakeKubeBrokerRepo
-		fakeKubeServiceRepo *brokerfakes.FakeKubeServiceRepo
-		fakeKubePlanRepo    *brokerfakes.FakeKubePlanRepo
+		fakeBrokerClient    *reconcilersfakes.FakeBrokerClient
+		fakeKubeBrokerRepo  *reconcilersfakes.FakeKubeBrokerRepo
+		fakeKubeServiceRepo *reconcilersfakes.FakeKubeServiceRepo
+		fakeKubePlanRepo    *reconcilersfakes.FakeKubePlanRepo
 
 		catalogPlanOne   = osbapi.Plan{ID: "id-plan-1", Name: "plan-1"}
 		catalogPlanTwo   = osbapi.Plan{ID: "id-plan-2", Name: "plan-2"}
@@ -49,10 +49,10 @@ var _ = Describe("BrokerReconciler", func() {
 	)
 
 	BeforeEach(func() {
-		fakeBrokerClient = &brokerfakes.FakeBrokerClient{}
-		fakeKubeBrokerRepo = &brokerfakes.FakeKubeBrokerRepo{}
-		fakeKubeServiceRepo = &brokerfakes.FakeKubeServiceRepo{}
-		fakeKubePlanRepo = &brokerfakes.FakeKubePlanRepo{}
+		fakeBrokerClient = &reconcilersfakes.FakeBrokerClient{}
+		fakeKubeBrokerRepo = &reconcilersfakes.FakeKubeBrokerRepo{}
+		fakeKubeServiceRepo = &reconcilersfakes.FakeKubeServiceRepo{}
+		fakeKubePlanRepo = &reconcilersfakes.FakeKubePlanRepo{}
 
 		createBrokerClient = func(config *osbapi.ClientConfiguration) (osbapi.Client, error) {
 			brokerClientConfiguredWith = config
