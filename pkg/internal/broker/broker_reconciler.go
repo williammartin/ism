@@ -3,16 +3,33 @@ package broker
 import (
 	"context"
 
-	osbapiv1alpha1 "github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
+	"k8s.io/apimachinery/pkg/types"
+
+	v1alpha1 "github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
 	osbapi "github.com/pmorie/go-open-service-broker-client/v2"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"github.com/pivotal-cf/ism/pkg/internal/repositories"
 )
 
 var ctx = context.TODO()
 
-//TODO Shall we leave this here or move it to the test?
+//go:generate counterfeiter . KubeBrokerRepo
+
+type KubeBrokerRepo interface {
+	Get(resource types.NamespacedName) (*v1alpha1.Broker, error)
+	UpdateState(broker *v1alpha1.Broker, newState v1alpha1.BrokerState) error
+}
+
+//go:generate counterfeiter . KubeServiceRepo
+
+type KubeServiceRepo interface {
+	Create(broker *v1alpha1.Broker, catalogService osbapi.Service) (*v1alpha1.BrokerService, error)
+}
+
+//go:generate counterfeiter . KubePlanRepo
+
+type KubePlanRepo interface {
+	Create(brokerService *v1alpha1.BrokerService, catalogPlan osbapi.Plan) error
+}
 
 //go:generate counterfeiter . BrokerClient
 
@@ -21,17 +38,17 @@ type BrokerClient interface {
 }
 
 type BrokerReconciler struct {
-	kubeBrokerRepo     repositories.KubeBrokerRepo
-	kubeServiceRepo    repositories.KubeServiceRepo
-	kubePlanRepo       repositories.KubePlanRepo
+	kubeBrokerRepo     KubeBrokerRepo
+	kubeServiceRepo    KubeServiceRepo
+	kubePlanRepo       KubePlanRepo
 	createBrokerClient osbapi.CreateFunc
 }
 
 func NewBrokerReconciler(
 	createBrokerClient osbapi.CreateFunc,
-	kubeBrokerRepo repositories.KubeBrokerRepo,
-	kubeServiceRepo repositories.KubeServiceRepo,
-	kubePlanRepo repositories.KubePlanRepo,
+	kubeBrokerRepo KubeBrokerRepo,
+	kubeServiceRepo KubeServiceRepo,
+	kubePlanRepo KubePlanRepo,
 ) *BrokerReconciler {
 	return &BrokerReconciler{
 		createBrokerClient: createBrokerClient,
@@ -47,7 +64,7 @@ func (r *BrokerReconciler) Reconcile(request reconcile.Request) (reconcile.Resul
 		return reconcile.Result{}, err
 	}
 
-	if broker.Status.State == osbapiv1alpha1.BrokerStateRegistered {
+	if broker.Status.State == v1alpha1.BrokerStateRegistered {
 		return reconcile.Result{}, nil
 	}
 
@@ -75,14 +92,14 @@ func (r *BrokerReconciler) Reconcile(request reconcile.Request) (reconcile.Resul
 		}
 	}
 
-	if err := r.kubeBrokerRepo.UpdateState(broker, osbapiv1alpha1.BrokerStateRegistered); err != nil {
+	if err := r.kubeBrokerRepo.UpdateState(broker, v1alpha1.BrokerStateRegistered); err != nil {
 		return reconcile.Result{}, err
 	}
 
 	return reconcile.Result{}, nil
 }
 
-func brokerClientConfig(broker *osbapiv1alpha1.Broker) *osbapi.ClientConfiguration {
+func brokerClientConfig(broker *v1alpha1.Broker) *osbapi.ClientConfiguration {
 	osbapiConfig := osbapi.DefaultClientConfiguration()
 	osbapiConfig.Name = broker.Spec.Name
 	osbapiConfig.URL = broker.Spec.URL

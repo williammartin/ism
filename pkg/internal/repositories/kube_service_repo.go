@@ -12,18 +12,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-//go:generate counterfeiter . KubeServiceRepo
-
-type KubeServiceRepo interface {
-	Create(broker *v1alpha1.Broker, catalogService osbapi.Service) (*v1alpha1.BrokerService, error)
-}
-
 type kubeServiceRepo struct {
 	client client.Client
 	scheme *runtime.Scheme
 }
 
-func NewKubeServiceRepo(client client.Client) KubeServiceRepo {
+func NewKubeServiceRepo(client client.Client) *kubeServiceRepo {
 	return &kubeServiceRepo{
 		client: client,
 		scheme: scheme.Scheme,

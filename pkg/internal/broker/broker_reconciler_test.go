@@ -11,7 +11,6 @@ import (
 	v1alpha1 "github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
 	. "github.com/pivotal-cf/ism/pkg/internal/broker"
 	"github.com/pivotal-cf/ism/pkg/internal/broker/brokerfakes"
-	"github.com/pivotal-cf/ism/pkg/internal/repositories/repositoriesfakes"
 	osbapi "github.com/pmorie/go-open-service-broker-client/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -25,9 +24,9 @@ var _ = Describe("BrokerReconciler", func() {
 		brokerClientConfiguredWith *osbapi.ClientConfiguration
 		brokerName                 types.NamespacedName
 		expectedBroker             v1alpha1.Broker
-		fakeKubeBrokerRepo         *repositoriesfakes.FakeKubeBrokerRepo
-		fakeKubeServiceRepo        *repositoriesfakes.FakeKubeServiceRepo
-		fakeKubePlanRepo           *repositoriesfakes.FakeKubePlanRepo
+		fakeKubeBrokerRepo         *brokerfakes.FakeKubeBrokerRepo
+		fakeKubeServiceRepo        *brokerfakes.FakeKubeServiceRepo
+		fakeKubePlanRepo           *brokerfakes.FakeKubePlanRepo
 
 		catalogPlanOne   = osbapi.Plan{ID: "id-plan-1", Name: "plan-1"}
 		catalogPlanTwo   = osbapi.Plan{ID: "id-plan-2", Name: "plan-2"}
@@ -49,9 +48,9 @@ var _ = Describe("BrokerReconciler", func() {
 
 	BeforeEach(func() {
 		fakeBrokerClient = &brokerfakes.FakeBrokerClient{}
-		fakeKubeBrokerRepo = &repositoriesfakes.FakeKubeBrokerRepo{}
-		fakeKubeServiceRepo = &repositoriesfakes.FakeKubeServiceRepo{}
-		fakeKubePlanRepo = &repositoriesfakes.FakeKubePlanRepo{}
+		fakeKubeBrokerRepo = &brokerfakes.FakeKubeBrokerRepo{}
+		fakeKubeServiceRepo = &brokerfakes.FakeKubeServiceRepo{}
+		fakeKubePlanRepo = &brokerfakes.FakeKubePlanRepo{}
 
 		createBrokerClient = func(config *osbapi.ClientConfiguration) (osbapi.Client, error) {
 			brokerClientConfiguredWith = config
