@@ -15,7 +15,7 @@ import (
 //go:generate counterfeiter . KubeServiceRepo
 
 type KubeServiceRepo interface {
-	Create(broker *v1alpha1.Broker, catalogService osbapi.Service) error
+	Create(broker *v1alpha1.Broker, catalogService osbapi.Service) (*v1alpha1.BrokerService, error)
 }
 
 type kubeServiceRepo struct {
@@ -30,8 +30,8 @@ func NewKubeServiceRepo(client client.Client) KubeServiceRepo {
 	}
 }
 
-func (repo *kubeServiceRepo) Create(broker *v1alpha1.Broker, catalogService osbapi.Service) error {
-	service := v1alpha1.BrokerService{
+func (repo *kubeServiceRepo) Create(broker *v1alpha1.Broker, catalogService osbapi.Service) (*v1alpha1.BrokerService, error) {
+	service := &v1alpha1.BrokerService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      broker.Name + "." + catalogService.ID,
 			Namespace: broker.Namespace,
@@ -43,11 +43,14 @@ func (repo *kubeServiceRepo) Create(broker *v1alpha1.Broker, catalogService osba
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(broker, &service, repo.scheme); err != nil {
-		// we couldn't find a way to trigger this from our tests,
-		// but we'll still keep the error handling in
-		return err
+	if err := controllerutil.SetControllerReference(broker, service, repo.scheme); err != nil {
+		return nil, err
 	}
 
-	return repo.client.Create(context.TODO(), &service)
+	//TODO the returned service should be obtained directly from the API
+	if err := repo.client.Create(context.TODO(), service); err != nil {
+		return nil, err
+	}
+
+	return service, nil
 }

@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	osbapiv1alpha1 "github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
+	v1alpha1 "github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
 	. "github.com/pivotal-cf/ism/pkg/internal/broker"
 	"github.com/pivotal-cf/ism/pkg/internal/broker/brokerfakes"
 	"github.com/pivotal-cf/ism/pkg/internal/repositories/repositoriesfakes"
@@ -18,36 +18,40 @@ import (
 
 var _ = Describe("BrokerReconciler", func() {
 	var (
-		fakeKubeClient             *brokerfakes.FakeKubeClient
+		err                        error
 		fakeBrokerClient           *brokerfakes.FakeBrokerClient
 		createBrokerClient         osbapi.CreateFunc
 		reconciler                 *BrokerReconciler
-		err                        error
 		brokerClientConfiguredWith *osbapi.ClientConfiguration
 		brokerName                 types.NamespacedName
-		expectedBroker             osbapiv1alpha1.Broker
+		expectedBroker             v1alpha1.Broker
 		fakeKubeBrokerRepo         *repositoriesfakes.FakeKubeBrokerRepo
 		fakeKubeServiceRepo        *repositoriesfakes.FakeKubeServiceRepo
+		fakeKubePlanRepo           *repositoriesfakes.FakeKubePlanRepo
+
+		catalogPlanOne   = osbapi.Plan{ID: "id-plan-1", Name: "plan-1"}
+		catalogPlanTwo   = osbapi.Plan{ID: "id-plan-2", Name: "plan-2"}
+		catalogPlanThree = osbapi.Plan{ID: "id-plan-3", Name: "plan-3"}
 
 		catalogServiceOne = osbapi.Service{
 			ID:          "id-service-1",
 			Name:        "service-1",
 			Description: "some fancy description",
-			Plans:       []osbapi.Plan{{ID: "id-plan-1", Name: "plan-1"}},
+			Plans:       []osbapi.Plan{catalogPlanOne},
 		}
 		catalogServiceTwo = osbapi.Service{
 			ID:          "id-service-2",
 			Name:        "service-2",
 			Description: "poorly written description",
-			Plans:       []osbapi.Plan{{ID: "id-plan-2", Name: "plan-2"}, {ID: "id-plan-3", Name: "plan-3"}},
+			Plans:       []osbapi.Plan{catalogPlanTwo, catalogPlanThree},
 		}
 	)
 
 	BeforeEach(func() {
-		fakeKubeClient = &brokerfakes.FakeKubeClient{}
 		fakeBrokerClient = &brokerfakes.FakeBrokerClient{}
 		fakeKubeBrokerRepo = &repositoriesfakes.FakeKubeBrokerRepo{}
 		fakeKubeServiceRepo = &repositoriesfakes.FakeKubeServiceRepo{}
+		fakeKubePlanRepo = &repositoriesfakes.FakeKubePlanRepo{}
 
 		createBrokerClient = func(config *osbapi.ClientConfiguration) (osbapi.Client, error) {
 			brokerClientConfiguredWith = config
@@ -55,12 +59,12 @@ var _ = Describe("BrokerReconciler", func() {
 		}
 		brokerName = types.NamespacedName{Name: "broker-1", Namespace: "default"}
 
-		expectedBroker = osbapiv1alpha1.Broker{
+		expectedBroker = v1alpha1.Broker{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      "broker-1",
 				Namespace: "default",
 			},
-			Spec: osbapiv1alpha1.BrokerSpec{
+			Spec: v1alpha1.BrokerSpec{
 				Name:     "broker-1",
 				URL:      "broker-url",
 				Username: "broker-username",
@@ -68,6 +72,8 @@ var _ = Describe("BrokerReconciler", func() {
 			},
 		}
 		fakeKubeBrokerRepo.GetReturns(&expectedBroker, nil)
+		fakeKubeServiceRepo.CreateReturnsOnCall(0, catalogServiceToBrokerService(&catalogServiceOne), nil)
+		fakeKubeServiceRepo.CreateReturnsOnCall(1, catalogServiceToBrokerService(&catalogServiceTwo), nil)
 
 		fakeBrokerClient.GetCatalogReturns(&osbapi.CatalogResponse{
 			Services: []osbapi.Service{
@@ -79,10 +85,10 @@ var _ = Describe("BrokerReconciler", func() {
 
 	JustBeforeEach(func() {
 		reconciler = NewBrokerReconciler(
-			fakeKubeClient,
 			createBrokerClient,
 			fakeKubeBrokerRepo,
 			fakeKubeServiceRepo,
+			fakeKubePlanRepo,
 		)
 
 		_, err = reconciler.Reconcile(reconcile.Request{
@@ -121,7 +127,7 @@ var _ = Describe("BrokerReconciler", func() {
 	It("updates the broker status to registered", func() {
 		Expect(fakeKubeBrokerRepo.UpdateStateCallCount()).To(Equal(1))
 		broker, newState := fakeKubeBrokerRepo.UpdateStateArgsForCall(0)
-		Expect(newState).To(Equal(osbapiv1alpha1.BrokerStateRegistered))
+		Expect(newState).To(Equal(v1alpha1.BrokerStateRegistered))
 		Expect(*broker).To(Equal(expectedBroker))
 	})
 
@@ -135,53 +141,23 @@ var _ = Describe("BrokerReconciler", func() {
 		Expect(catalogService).To(Equal(catalogServiceTwo))
 	})
 
-	It("creates plan resources using the kube client", func() {
-		_, obj := fakeKubeClient.CreateArgsForCall(0)
-		plan, ok := obj.(*osbapiv1alpha1.BrokerServicePlan)
-		Expect(ok).To(BeTrue())
-		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: "default",
-				Name:      "broker-1.id-service-1.id-plan-1",
-			},
-			Spec: osbapiv1alpha1.BrokerServicePlanSpec{
-				Name: "plan-1",
-				//TODO: ServiceID    string `json:"serviceID"`
-			},
-		}))
+	It("creates plan resources using the kube plan repo", func() {
+		serviceArg, catalogPlanArg := fakeKubePlanRepo.CreateArgsForCall(0)
+		Expect(serviceArg.ObjectMeta.Name).To(Equal("broker-1.id-service-1"))
+		Expect(catalogPlanArg).To(Equal(catalogPlanOne))
 
-		_, obj = fakeKubeClient.CreateArgsForCall(1)
-		plan, ok = obj.(*osbapiv1alpha1.BrokerServicePlan)
-		Expect(ok).To(BeTrue())
-		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: "default",
-				Name:      "broker-1.id-service-2.id-plan-2",
-			},
-			Spec: osbapiv1alpha1.BrokerServicePlanSpec{
-				Name: "plan-2",
-				//TODO: BrokerID    string `json:"brokerID"`
-			},
-		}))
+		serviceArg, catalogPlanArg = fakeKubePlanRepo.CreateArgsForCall(1)
+		Expect(serviceArg.ObjectMeta.Name).To(Equal("broker-1.id-service-2"))
+		Expect(catalogPlanArg).To(Equal(catalogPlanTwo))
 
-		_, obj = fakeKubeClient.CreateArgsForCall(2)
-		plan, ok = obj.(*osbapiv1alpha1.BrokerServicePlan)
-		Expect(ok).To(BeTrue())
-		Expect(*plan).To(Equal(osbapiv1alpha1.BrokerServicePlan{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: "default",
-				Name:      "broker-1.id-service-2.id-plan-3",
-			},
-			Spec: osbapiv1alpha1.BrokerServicePlanSpec{
-				Name: "plan-3",
-				//TODO: BrokerID    string `json:"brokerID"`
-			},
-		}))
+		serviceArg, catalogPlanArg = fakeKubePlanRepo.CreateArgsForCall(2)
+		Expect(serviceArg.ObjectMeta.Name).To(Equal("broker-1.id-service-2"))
+		Expect(catalogPlanArg).To(Equal(catalogPlanThree))
 	})
 
 	When("the broker state reports it is already registered", func() {
 		BeforeEach(func() {
-			expectedBroker.Status.State = osbapiv1alpha1.BrokerStateRegistered
+			expectedBroker.Status.State = v1alpha1.BrokerStateRegistered
 		})
 
 		It("doesn't call the broker", func() {
@@ -242,7 +218,7 @@ var _ = Describe("BrokerReconciler", func() {
 
 	When("creating service resource fails", func() {
 		BeforeEach(func() {
-			fakeKubeServiceRepo.CreateReturns(errors.New("error-creating-service"))
+			fakeKubeServiceRepo.CreateReturnsOnCall(0, nil, errors.New("error-creating-service"))
 		})
 
 		It("returns the error", func() {
@@ -252,7 +228,7 @@ var _ = Describe("BrokerReconciler", func() {
 
 	When("creating service plan resource fails", func() {
 		BeforeEach(func() {
-			fakeKubeClient.CreateReturnsOnCall(1, errors.New("error-creating-plan"))
+			fakeKubePlanRepo.CreateReturnsOnCall(0, errors.New("error-creating-plan"))
 		})
 
 		It("returns the error", func() {
@@ -260,3 +236,17 @@ var _ = Describe("BrokerReconciler", func() {
 		})
 	})
 })
+
+//TODO broker-1.id ...
+func catalogServiceToBrokerService(osbapiService *osbapi.Service) *v1alpha1.BrokerService {
+	return &v1alpha1.BrokerService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "broker-1.id-" + osbapiService.Name,
+			Namespace: "default",
+		},
+		Spec: v1alpha1.BrokerServiceSpec{
+			Name:        osbapiService.Name,
+			Description: osbapiService.Description,
+		},
+	}
+}

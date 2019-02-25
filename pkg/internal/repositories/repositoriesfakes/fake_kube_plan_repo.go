@@ -9,31 +9,29 @@ import (
 	v2 "github.com/pmorie/go-open-service-broker-client/v2"
 )
 
-type FakeKubeServiceRepo struct {
-	CreateStub        func(*v1alpha1.Broker, v2.Service) (*v1alpha1.BrokerService, error)
+type FakeKubePlanRepo struct {
+	CreateStub        func(*v1alpha1.BrokerService, v2.Plan) error
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
-		arg1 *v1alpha1.Broker
-		arg2 v2.Service
+		arg1 *v1alpha1.BrokerService
+		arg2 v2.Plan
 	}
 	createReturns struct {
-		result1 *v1alpha1.BrokerService
-		result2 error
+		result1 error
 	}
 	createReturnsOnCall map[int]struct {
-		result1 *v1alpha1.BrokerService
-		result2 error
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeKubeServiceRepo) Create(arg1 *v1alpha1.Broker, arg2 v2.Service) (*v1alpha1.BrokerService, error) {
+func (fake *FakeKubePlanRepo) Create(arg1 *v1alpha1.BrokerService, arg2 v2.Plan) error {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
-		arg1 *v1alpha1.Broker
-		arg2 v2.Service
+		arg1 *v1alpha1.BrokerService
+		arg2 v2.Plan
 	}{arg1, arg2})
 	fake.recordInvocation("Create", []interface{}{arg1, arg2})
 	fake.createMutex.Unlock()
@@ -41,58 +39,55 @@ func (fake *FakeKubeServiceRepo) Create(arg1 *v1alpha1.Broker, arg2 v2.Service) 
 		return fake.CreateStub(arg1, arg2)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
 	fakeReturns := fake.createReturns
-	return fakeReturns.result1, fakeReturns.result2
+	return fakeReturns.result1
 }
 
-func (fake *FakeKubeServiceRepo) CreateCallCount() int {
+func (fake *FakeKubePlanRepo) CreateCallCount() int {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeKubeServiceRepo) CreateCalls(stub func(*v1alpha1.Broker, v2.Service) (*v1alpha1.BrokerService, error)) {
+func (fake *FakeKubePlanRepo) CreateCalls(stub func(*v1alpha1.BrokerService, v2.Plan) error) {
 	fake.createMutex.Lock()
 	defer fake.createMutex.Unlock()
 	fake.CreateStub = stub
 }
 
-func (fake *FakeKubeServiceRepo) CreateArgsForCall(i int) (*v1alpha1.Broker, v2.Service) {
+func (fake *FakeKubePlanRepo) CreateArgsForCall(i int) (*v1alpha1.BrokerService, v2.Plan) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	argsForCall := fake.createArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeKubeServiceRepo) CreateReturns(result1 *v1alpha1.BrokerService, result2 error) {
+func (fake *FakeKubePlanRepo) CreateReturns(result1 error) {
 	fake.createMutex.Lock()
 	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	fake.createReturns = struct {
-		result1 *v1alpha1.BrokerService
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKubeServiceRepo) CreateReturnsOnCall(i int, result1 *v1alpha1.BrokerService, result2 error) {
+func (fake *FakeKubePlanRepo) CreateReturnsOnCall(i int, result1 error) {
 	fake.createMutex.Lock()
 	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	if fake.createReturnsOnCall == nil {
 		fake.createReturnsOnCall = make(map[int]struct {
-			result1 *v1alpha1.BrokerService
-			result2 error
+			result1 error
 		})
 	}
 	fake.createReturnsOnCall[i] = struct {
-		result1 *v1alpha1.BrokerService
-		result2 error
-	}{result1, result2}
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeKubeServiceRepo) Invocations() map[string][][]interface{} {
+func (fake *FakeKubePlanRepo) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createMutex.RLock()
@@ -104,7 +99,7 @@ func (fake *FakeKubeServiceRepo) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeKubeServiceRepo) recordInvocation(key string, args []interface{}) {
+func (fake *FakeKubePlanRepo) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -116,4 +111,4 @@ func (fake *FakeKubeServiceRepo) recordInvocation(key string, args []interface{}
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ repositories.KubeServiceRepo = new(FakeKubeServiceRepo)
+var _ repositories.KubePlanRepo = new(FakeKubePlanRepo)

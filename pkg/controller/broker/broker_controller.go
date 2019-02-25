@@ -86,11 +86,13 @@ type ReconcileBroker struct {
 func (r *ReconcileBroker) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	kubeBrokerRepo := repositories.NewKubeBrokerRepo(r.Client)
 	kubeServiceRepo := repositories.NewKubeServiceRepo(r.Client)
+	kubePlanRepo := repositories.NewKubePlanRepo(r.Client)
+
 	reconciler := internalbroker.NewBrokerReconciler(
-		r.Client,
 		osbapi.NewClient,
 		kubeBrokerRepo,
 		kubeServiceRepo,
+		kubePlanRepo,
 	)
 
 	return reconciler.Reconcile(request)

@@ -15,9 +15,10 @@ import (
 
 var _ = Describe("KubeServiceRepo", func() {
 	var (
-		repo          KubeServiceRepo
-		broker        *v1alpha1.Broker
-		brokerService *v1alpha1.BrokerService
+		repo            KubeServiceRepo
+		broker          *v1alpha1.Broker
+		brokerService   *v1alpha1.BrokerService
+		returnedService *v1alpha1.BrokerService
 	)
 
 	BeforeEach(func() {
@@ -38,17 +39,13 @@ var _ = Describe("KubeServiceRepo", func() {
 		repo = NewKubeServiceRepo(kubeClient)
 	})
 
-	AfterEach(func() {
-		kubeClient.Delete(context.Background(), broker)
-	})
-
 	Describe("Create", func() {
 		When("the broker exists", func() {
 			BeforeEach(func() {
 				err := kubeClient.Create(context.Background(), broker)
 				Expect(err).NotTo(HaveOccurred())
 
-				err = repo.Create(broker, osbapi.Service{
+				returnedService, err = repo.Create(broker, osbapi.Service{
 					ID:          "service-id-1",
 					Name:        "service-one",
 					Description: "cool description",
@@ -60,7 +57,12 @@ var _ = Describe("KubeServiceRepo", func() {
 			})
 
 			AfterEach(func() {
-				kubeClient.Delete(context.Background(), brokerService)
+				Expect(kubeClient.Delete(context.Background(), brokerService)).To(Succeed())
+				Expect(kubeClient.Delete(context.Background(), broker)).To(Succeed())
+			})
+
+			It("returns the created service", func() {
+				Expect(returnedService.Spec).To(Equal(brokerService.Spec))
 			})
 
 			It("creates the service with the correct spec", func() {
@@ -91,7 +93,7 @@ var _ = Describe("KubeServiceRepo", func() {
 					},
 				}
 
-				err := repo.Create(invalidBroker, osbapi.Service{
+				_, err := repo.Create(invalidBroker, osbapi.Service{
 					ID:          "service-id-1",
 					Name:        "service-one",
 					Description: "cool description",
