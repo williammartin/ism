@@ -31,8 +31,7 @@ type BrokerSpec struct {
 type BrokerState string
 
 const (
-	BrokerStateRegistered         BrokerState = "registered"
-	BrokerStateRegistrationFailed BrokerState = "registrationFailed"
+	BrokerStateRegistered BrokerState = "registered"
 )
 
 // BrokerStatus defines the observed state of Broker
