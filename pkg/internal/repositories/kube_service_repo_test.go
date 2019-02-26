@@ -52,7 +52,7 @@ var _ = Describe("KubeServiceRepo", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 
-				err = kubeClient.Get(context.Background(), types.NamespacedName{Name: "broker-1.service-id-1", Namespace: "default"}, brokerService)
+				err = kubeClient.Get(context.Background(), types.NamespacedName{Name: "service-id-1", Namespace: "default"}, brokerService)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -74,7 +74,7 @@ var _ = Describe("KubeServiceRepo", func() {
 			})
 
 			It("generates the correct name and namespace", func() {
-				Expect(brokerService.ObjectMeta.Name).To(Equal("broker-1.service-id-1"))
+				Expect(brokerService.ObjectMeta.Name).To(Equal("service-id-1"))
 				Expect(brokerService.ObjectMeta.Namespace).To(Equal("default"))
 			})
 
@@ -84,7 +84,7 @@ var _ = Describe("KubeServiceRepo", func() {
 			})
 		})
 
-		When("the broker doesn't exist", func() {
+		When("the broker is invalid", func() {
 			It("returns an error", func() {
 				invalidBroker := &v1alpha1.Broker{
 					ObjectMeta: metav1.ObjectMeta{
@@ -99,7 +99,7 @@ var _ = Describe("KubeServiceRepo", func() {
 					Description: "cool description",
 				})
 
-				Expect(err).To(MatchError("BrokerService.osbapi.ism.io \"broker-without-uid.service-id-1\" is invalid" +
+				Expect(err).To(MatchError("BrokerService.osbapi.ism.io \"service-id-1\" is invalid" +
 					": metadata.ownerReferences.uid: Invalid value: \"\": uid must not be empty"))
 			})
 		})

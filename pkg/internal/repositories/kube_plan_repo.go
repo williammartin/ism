@@ -27,7 +27,7 @@ func NewKubePlanRepo(client client.Client) *KubePlanRepo {
 func (repo *KubePlanRepo) Create(service *v1alpha1.BrokerService, catalogPlan osbapi.Plan) error {
 	plan := &v1alpha1.BrokerServicePlan{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      service.ObjectMeta.Name + "." + catalogPlan.ID,
+			Name:      catalogPlan.ID,
 			Namespace: service.Namespace,
 		},
 		Spec: v1alpha1.BrokerServicePlanSpec{

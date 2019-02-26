@@ -23,14 +23,14 @@ var _ = Describe("KubePlanRepo", func() {
 	BeforeEach(func() {
 		brokerService = &v1alpha1.BrokerService{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "broker-1.service-id-1",
+				Name:      "service-id-1",
 				Namespace: "default",
 			},
 		}
 
 		brokerServicePlan = &v1alpha1.BrokerServicePlan{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      "broker-1.service-id-1.plan-id-1",
+				Name:      "plan-id-1",
 				Namespace: "default",
 			},
 		}
@@ -51,7 +51,7 @@ var _ = Describe("KubePlanRepo", func() {
 				})
 				Expect(err).NotTo(HaveOccurred())
 
-				err = kubeClient.Get(context.Background(), types.NamespacedName{Name: "broker-1.service-id-1.plan-id-1", Namespace: "default"}, brokerServicePlan)
+				err = kubeClient.Get(context.Background(), types.NamespacedName{Name: "plan-id-1", Namespace: "default"}, brokerServicePlan)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -67,7 +67,7 @@ var _ = Describe("KubePlanRepo", func() {
 			})
 
 			It("generates the correct name and namespace", func() {
-				Expect(brokerServicePlan.ObjectMeta.Name).To(Equal("broker-1.service-id-1.plan-id-1"))
+				Expect(brokerServicePlan.ObjectMeta.Name).To(Equal("plan-id-1"))
 				Expect(brokerServicePlan.ObjectMeta.Namespace).To(Equal("default"))
 			})
 
@@ -76,7 +76,7 @@ var _ = Describe("KubePlanRepo", func() {
 				Expect(brokerServicePlan.ObjectMeta.OwnerReferences[0].UID).To(Equal(brokerService.ObjectMeta.UID))
 			})
 
-			When("the service doesn't exist", func() {
+			When("the service is invalid", func() {
 				It("returns an error", func() {
 					invalidService := &v1alpha1.BrokerService{
 						ObjectMeta: metav1.ObjectMeta{
@@ -91,7 +91,7 @@ var _ = Describe("KubePlanRepo", func() {
 						Description: "plan-1-description",
 					})
 
-					Expect(err).To(MatchError("BrokerServicePlan.osbapi.ism.io \"service-without-uid.plan-id-1\" is invalid: " +
+					Expect(err).To(MatchError("BrokerServicePlan.osbapi.ism.io \"plan-id-1\" is invalid: " +
 						"metadata.ownerReferences.uid: Invalid value: \"\": uid must not be empty"))
 				})
 			})

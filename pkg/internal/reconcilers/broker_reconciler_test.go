@@ -143,15 +143,15 @@ var _ = Describe("BrokerReconciler", func() {
 
 	It("creates plan resources using the kube plan repo", func() {
 		serviceArg, catalogPlanArg := fakeKubePlanRepo.CreateArgsForCall(0)
-		Expect(serviceArg.ObjectMeta.Name).To(Equal("broker-1.id-service-1"))
+		Expect(serviceArg.ObjectMeta.Name).To(Equal("service-1"))
 		Expect(catalogPlanArg).To(Equal(catalogPlanOne))
 
 		serviceArg, catalogPlanArg = fakeKubePlanRepo.CreateArgsForCall(1)
-		Expect(serviceArg.ObjectMeta.Name).To(Equal("broker-1.id-service-2"))
+		Expect(serviceArg.ObjectMeta.Name).To(Equal("service-2"))
 		Expect(catalogPlanArg).To(Equal(catalogPlanTwo))
 
 		serviceArg, catalogPlanArg = fakeKubePlanRepo.CreateArgsForCall(2)
-		Expect(serviceArg.ObjectMeta.Name).To(Equal("broker-1.id-service-2"))
+		Expect(serviceArg.ObjectMeta.Name).To(Equal("service-2"))
 		Expect(catalogPlanArg).To(Equal(catalogPlanThree))
 	})
 
@@ -237,11 +237,10 @@ var _ = Describe("BrokerReconciler", func() {
 	})
 })
 
-//TODO broker-1.id ...
 func catalogServiceToBrokerService(osbapiService *osbapi.Service) *v1alpha1.BrokerService {
 	return &v1alpha1.BrokerService{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "broker-1.id-" + osbapiService.Name,
+			Name:      osbapiService.Name,
 			Namespace: "default",
 		},
 		Spec: v1alpha1.BrokerServiceSpec{

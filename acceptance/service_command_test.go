@@ -3,6 +3,7 @@ package acceptance
 import (
 	"os"
 	"os/exec"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -76,6 +77,10 @@ var _ = Describe("CLI service command", func() {
 				brokerUsername := os.Getenv("BROKER_USERNAME")
 				brokerPassword := os.Getenv("BROKER_PASSWORD")
 
+				Expect(brokerURL).NotTo(Equal(""))
+				Expect(brokerUsername).NotTo(Equal(""))
+				Expect(brokerPassword).NotTo(Equal(""))
+
 				registerArgs := []string{"broker", "register",
 					"--name", "test-broker",
 					"--url", brokerURL,
@@ -85,12 +90,19 @@ var _ = Describe("CLI service command", func() {
 				registerSession, err := Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(registerSession).Should(Exit(0))
+
+				//TODO: Temporarily sleep until #164240938 is done.
+				time.Sleep(3 * time.Second)
 			})
 
-			PIt("displays services and plans for the broker", func() {
+			AfterEach(func() {
+				deleteBrokers("test-broker")
+			})
+
+			It("displays services and plans for the broker", func() {
 				Eventually(session).Should(Exit(0))
-				Eventually(session).Should(Say(`^NAME\\s+PLANS\\s+BROKER\\s+DESCRIPTION$`))
-				Eventually(session).Should(Say(`^overview-service\\s+simple\\s+test-broker\\s+Provides an overview of any service instances and bindings that have$`))
+				Eventually(session).Should(Say("SERVICE\\s+PLANS\\s+BROKER\\s+DESCRIPTION"))
+				Eventually(session).Should(Say("overview-service\\s+simple, complex\\s+test-broker\\s+Provides an overview of any service instances and bindings that have been created by a platform"))
 			})
 		})
 	})

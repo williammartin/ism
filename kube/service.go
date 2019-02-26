@@ -22,12 +22,18 @@ func (s *Service) FindByBroker(brokerID string) ([]*osbapi.Service, error) {
 
 	services := []*osbapi.Service{}
 	for _, s := range list.Items {
-		if s.Spec.BrokerID == brokerID {
+		// TODO: This code will be refactored so filtering happens in the API - for now
+		// we are assuming there will never be multiple owner references.
+		if len(s.ObjectMeta.OwnerReferences) == 0 {
+			break
+		}
+
+		if string(s.ObjectMeta.OwnerReferences[0].UID) == brokerID {
 			services = append(services, &osbapi.Service{
 				ID:          string(s.UID),
 				Name:        s.Spec.Name,
 				Description: s.Spec.Description,
-				BrokerID:    s.Spec.BrokerID,
+				BrokerID:    brokerID,
 			})
 		}
 	}

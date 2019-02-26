@@ -1,17 +1,12 @@
 package acceptance
 
 import (
-	"context"
 	"os/exec"
-
-	"k8s.io/apimachinery/pkg/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gbytes"
 	. "github.com/onsi/gomega/gexec"
-	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("CLI broker command", func() {
@@ -93,25 +88,3 @@ var _ = Describe("CLI broker command", func() {
 		})
 	})
 })
-
-func ensureBrokerExists(brokerName string) {
-	key := types.NamespacedName{
-		Name:      brokerName,
-		Namespace: "default",
-	}
-
-	fetched := &v1alpha1.Broker{}
-	Expect(kubeClient.Get(context.TODO(), key, fetched)).To(Succeed())
-}
-
-func deleteBrokers(brokerNames ...string) {
-	for _, b := range brokerNames {
-		bToDelete := &v1alpha1.Broker{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      b,
-				Namespace: "default",
-			},
-		}
-		Expect(kubeClient.Delete(context.TODO(), bToDelete)).To(Succeed())
-	}
-}

@@ -38,50 +38,88 @@ var _ = Describe("Service", func() {
 			err      error
 		)
 
-		BeforeEach(func() {
-			serviceResource := &v1alpha1.BrokerService{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "service-1",
-					Namespace: "default",
-				},
-				Spec: v1alpha1.BrokerServiceSpec{
-					Name:        "service-1",
-					Description: "service-1-desc",
-					BrokerID:    "broker-1",
-				},
-			}
-			Expect(kubeClient.Create(context.TODO(), serviceResource)).To(Succeed())
-
-			serviceResource2 := &v1alpha1.BrokerService{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "service-2",
-					Namespace: "default",
-				},
-				Spec: v1alpha1.BrokerServiceSpec{
-					Name:        "service-2",
-					Description: "service-2-desc",
-					BrokerID:    "broker-2",
-				},
-			}
-			Expect(kubeClient.Create(context.TODO(), serviceResource2)).To(Succeed())
-		})
-
 		JustBeforeEach(func() {
 			services, err = service.FindByBroker("broker-1")
 		})
 
-		AfterEach(func() {
-			deleteServices(kubeClient, "service-1")
+		When("services contain owner references to brokers", func() {
+			BeforeEach(func() {
+				serviceResource := &v1alpha1.BrokerService{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "service-1",
+						Namespace: "default",
+						OwnerReferences: []metav1.OwnerReference{{
+							Name:       "broker-1",
+							Kind:       "kind",
+							APIVersion: "version",
+							UID:        "broker-1",
+						}},
+					},
+					Spec: v1alpha1.BrokerServiceSpec{
+						Name:        "service-1",
+						Description: "service-1-desc",
+					},
+				}
+				Expect(kubeClient.Create(context.TODO(), serviceResource)).To(Succeed())
+
+				serviceResource2 := &v1alpha1.BrokerService{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "service-2",
+						Namespace: "default",
+						OwnerReferences: []metav1.OwnerReference{{
+							Name:       "broker-2",
+							Kind:       "kind",
+							APIVersion: "version",
+							UID:        "broker-2",
+						}},
+					},
+					Spec: v1alpha1.BrokerServiceSpec{
+						Name:        "service-2",
+						Description: "service-2-desc",
+					},
+				}
+				Expect(kubeClient.Create(context.TODO(), serviceResource2)).To(Succeed())
+			})
+
+			AfterEach(func() {
+				deleteServices(kubeClient, "service-1", "service-2")
+			})
+
+			It("returns only the services owned by the broker id", func() {
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(services).To(HaveLen(1))
+				Expect(*services[0]).To(MatchFields(IgnoreExtras, Fields{
+					"Name":        Equal("service-1"),
+					"Description": Equal("service-1-desc"),
+					"BrokerID":    Equal("broker-1"),
+				}))
+			})
 		})
 
-		It("returns services by broker id", func() {
-			Expect(err).NotTo(HaveOccurred())
+		When("the service owner reference is not set", func() {
+			BeforeEach(func() {
+				serviceResource := &v1alpha1.BrokerService{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "service-1",
+						Namespace: "default",
+					},
+					Spec: v1alpha1.BrokerServiceSpec{
+						Name:        "service-1",
+						Description: "service-1-desc",
+					},
+				}
+				Expect(kubeClient.Create(context.TODO(), serviceResource)).To(Succeed())
+			})
 
-			Expect(*services[0]).To(MatchFields(IgnoreExtras, Fields{
-				"Name":        Equal("service-1"),
-				"Description": Equal("service-1-desc"),
-				"BrokerID":    Equal("broker-1"),
-			}))
+			AfterEach(func() {
+				deleteServices(kubeClient, "service-1")
+			})
+
+			It("successfully returns no services", func() {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(services).To(HaveLen(0))
+			})
 		})
 	})
 })

@@ -61,6 +61,7 @@ func NewBrokerReconciler(
 func (r *BrokerReconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	broker, err := r.kubeBrokerRepo.Get(request.NamespacedName)
 	if err != nil {
+		//TODO handle delete gracefully
 		return reconcile.Result{}, err
 	}
 
