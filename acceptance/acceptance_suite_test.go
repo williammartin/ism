@@ -32,11 +32,18 @@ func TestAcceptance(t *testing.T) {
 	SetDefaultEventuallyTimeout(time.Second * 5)
 	SetDefaultConsistentlyDuration(time.Second * 5)
 
-	BeforeSuite(func() {
+	SynchronizedBeforeSuite(func() []byte {
 		var err error
+
 		pathToCLI, err = Build("github.com/pivotal-cf/ism/cmd/ism")
 		Expect(err).NotTo(HaveOccurred())
 
+		installCRDs()
+		startController()
+
+		return []byte(pathToCLI)
+	}, func(rawPathToCLI []byte) {
+		pathToCLI = string(rawPathToCLI)
 		testEnv = &envtest.Environment{
 			UseExistingCluster: true,
 		}
@@ -48,13 +55,11 @@ func TestAcceptance(t *testing.T) {
 
 		kubeClient, err = client.New(testEnvConfig, client.Options{Scheme: scheme.Scheme})
 		Expect(err).NotTo(HaveOccurred())
-
-		installCRDs()
-		startController()
 	})
 
-	AfterSuite(func() {
+	SynchronizedAfterSuite(func() {
 		Expect(testEnv.Stop()).To(Succeed())
+	}, func() {
 		terminateController()
 		CleanupBuildArtifacts()
 	})
