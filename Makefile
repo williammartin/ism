@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 CLI_NAME = bin/ism
-GINKGO_ARGS = -r -p
+GINKGO_ARGS = -r -p -randomizeSuites
 
 all: clean test manager cli
 
