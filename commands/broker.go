@@ -12,7 +12,7 @@ type BrokerRegistrar interface {
 }
 
 type BrokerCommand struct {
-	RegisterCommand RegisterCommand `command:"register" long-description:"Register a service broker into the marketplace"`
+	RegisterCommand NullCommand `command:"register" long-description:"Register a service broker into the marketplace"`
 }
 
 type RegisterCommand struct {
