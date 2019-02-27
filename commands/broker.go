@@ -12,14 +12,14 @@ type BrokerRegistrar interface {
 }
 
 type BrokerCommand struct {
-	RegisterCommand RegisterCommand `command:"register" long-description:"Register a Service Broker into the marketplace"`
+	RegisterCommand RegisterCommand `command:"register" long-description:"Register a service broker into the marketplace"`
 }
 
 type RegisterCommand struct {
-	Name     string `long:"name" description:"Name of the Service Broker" required:"true"`
-	URL      string `long:"url" description:"URL of the Service Broker" required:"true"`
-	Username string `long:"username" description:"Username of the Service Broker" required:"true"`
-	Password string `long:"password" description:"Password of the Service Broker" required:"true"`
+	Name     string `long:"name" description:"Name of the service broker" required:"true"`
+	URL      string `long:"url" description:"URL of the service broker" required:"true"`
+	Username string `long:"username" description:"Username of the service broker" required:"true"`
+	Password string `long:"password" description:"Password of the service broker" required:"true"`
 
 	UI              UI
 	BrokerRegistrar BrokerRegistrar
