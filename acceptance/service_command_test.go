@@ -64,6 +64,7 @@ var _ = Describe("CLI service command", func() {
 			})
 		})
 
+		//TODO: -randomizeAllSpecs causes this test to flake due to shared k8s state
 		When("0 brokers are registered", func() {
 			It("displays 'No services found.' and exits 0", func() {
 				Eventually(session).Should(Exit(0))
@@ -71,6 +72,7 @@ var _ = Describe("CLI service command", func() {
 			})
 		})
 
+		//TODO: -randomizeAllSpecs causes this test to flake due to shared k8s state
 		When("1 broker is registered", func() {
 			BeforeEach(func() {
 				brokerURL := os.Getenv("BROKER_URL")

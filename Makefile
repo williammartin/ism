@@ -2,7 +2,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 CLI_NAME = bin/ism
-GINKGO_ARGS = -r -p -randomizeSuites
+GINKGO_ARGS = -r -p -randomizeSuites -randomizeAllSpecs
 
 all: clean test manager cli
 
@@ -60,8 +60,9 @@ cli:
 clean:
 	rm -f ${CLI_NAME}
 
+# Cannot yet -randomizeAllSpecs the acceptance tests
 acceptance-tests:
-	ginkgo ${GINKGO_ARGS} acceptance
+	ginkgo -r -p -randomizeSuites acceptance
 
 # skip integration/acceptance tests
 unit-tests:
