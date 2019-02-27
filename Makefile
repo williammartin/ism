@@ -54,28 +54,23 @@ docker-push:
 
 ### CUSTOM MAKE RULES ###
 
-# Make the CLI
 cli:
 	go build -o ${CLI_NAME} cmd/ism/main.go
 
-# Clean the CLI
 clean:
 	rm -f ${CLI_NAME}
 
-# Run acceptance tests
 acceptance-tests:
 	ginkgo ${GINKGO_ARGS} acceptance
 
-# Run unit tests
+# skip integration/acceptance tests
 unit-tests:
-	ginkgo ${GINKGO_ARGS} actors commands ui usecases
+	ginkgo ${GINKGO_ARGS} -skipPackage acceptance,kube,pkg/controller,pkg/api,pkg/internal/repositories
 
-integration-tests: kube-tests kubebuilder-tests
+integration-tests: cli-integration-tests kube-integration-tests
 
-# Run kube tests
-kube-tests:
+cli-integration-tests:
 	ginkgo ${GINKGO_ARGS} kube
 
-# Run kubebuilder tests
-kubebuilder-tests:
-	ginkgo ${GINKGO_ARGS} ./pkg/...
+kube-integration-tests:
+	ginkgo ${GINKGO_ARGS} pkg/controller pkg/api pkg/internal/repositories
