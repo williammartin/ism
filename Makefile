@@ -2,6 +2,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 CLI_NAME = bin/ism
+GINKGO_ARGS = -r -p
 
 all: clean test manager cli
 
@@ -63,18 +64,18 @@ clean:
 
 # Run acceptance tests
 acceptance-tests:
-	ginkgo -r acceptance
+	ginkgo ${GINKGO_ARGS} acceptance
 
 # Run unit tests
 unit-tests:
-	ginkgo -r actors commands ui usecases
+	ginkgo ${GINKGO_ARGS} actors commands ui usecases
 
 integration-tests: kube-tests kubebuilder-tests
 
 # Run kube tests
 kube-tests:
-	ginkgo -r kube
+	ginkgo ${GINKGO_ARGS} kube
 
 # Run kubebuilder tests
 kubebuilder-tests:
-	go test ./pkg/... ./cmd/... -coverprofile cover.out
+	ginkgo ${GINKGO_ARGS} ./pkg/...
