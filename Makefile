@@ -1,7 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
-SM = bin/sm
+CLI_NAME = bin/ism
 
 all: clean test manager cli
 
@@ -55,11 +55,11 @@ docker-push:
 
 # Make the CLI
 cli:
-	go build -o ${SM} cmd/sm/main.go
+	go build -o ${CLI_NAME} cmd/ism/main.go
 
 # Clean the CLI
 clean:
-	rm -f ${SM}
+	rm -f ${CLI_NAME}
 
 # Run acceptance tests
 acceptance-tests:

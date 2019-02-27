@@ -10,6 +10,7 @@ import (
 	"github.com/pivotal-cf/ism/pkg/apis/osbapi/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
@@ -21,7 +22,7 @@ import (
 )
 
 var (
-	pathToSMCLI       string
+	pathToCLI         string
 	kubeClient        client.Client
 	controllerSession *Session
 	testEnv           *envtest.Environment
@@ -33,7 +34,7 @@ func TestAcceptance(t *testing.T) {
 
 	BeforeSuite(func() {
 		var err error
-		pathToSMCLI, err = Build("github.com/pivotal-cf/ism/cmd/sm")
+		pathToCLI, err = Build("github.com/pivotal-cf/ism/cmd/ism")
 		Expect(err).NotTo(HaveOccurred())
 
 		testEnv = &envtest.Environment{

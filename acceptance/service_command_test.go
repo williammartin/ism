@@ -25,7 +25,7 @@ var _ = Describe("CLI service command", func() {
 	JustBeforeEach(func() {
 		var err error
 
-		command := exec.Command(pathToSMCLI, args...)
+		command := exec.Command(pathToCLI, args...)
 		session, err = Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -86,7 +86,7 @@ var _ = Describe("CLI service command", func() {
 					"--url", brokerURL,
 					"--username", brokerUsername,
 					"--password", brokerPassword}
-				command := exec.Command(pathToSMCLI, registerArgs...)
+				command := exec.Command(pathToCLI, registerArgs...)
 				registerSession, err := Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(registerSession).Should(Exit(0))

@@ -23,7 +23,7 @@ var _ = Describe("CLI broker command", func() {
 	JustBeforeEach(func() {
 		var err error
 
-		command := exec.Command(pathToSMCLI, args...)
+		command := exec.Command(pathToCLI, args...)
 		session, err = Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 	})
