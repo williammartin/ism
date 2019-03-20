@@ -26,11 +26,26 @@ func main() {
 				UI: UI,
 			},
 		},
+		BrokerCommand: commands.BrokerCommand{
+			BrokerListCommand: commands.BrokerListCommand{
+				UI: UI,
+			},
+		},
+		ServiceCommand: commands.ServiceCommand{
+			ServiceListCommand: commands.ServiceListCommand{
+				UI: UI,
+			},
+		},
 	}
 	parser := flags.NewParser(&rootCommand, flags.HelpFlag|flags.PassDoubleDash)
 
 	if len(os.Args) < 2 {
 		os.Args = append(os.Args, "--help")
+	}
+
+	if os.Args[1] == "help" {
+		parser.WriteHelp(os.Stdout)
+		os.Exit(0)
 	}
 
 	_, err := parser.Parse()
